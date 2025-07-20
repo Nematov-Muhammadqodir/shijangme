@@ -1,6 +1,8 @@
 import { ObjectId } from 'bson';
 import { T } from './types/common';
 import { pipeline } from 'stream';
+import { v4 as uuidv4 } from 'uuid';
+import * as path from 'path';
 
 export const availableVendorSorts = [
   'createdAt',
@@ -58,4 +60,12 @@ export const lookupAuthMemberLiked = (
       as: 'meLiked',
     },
   };
+};
+
+//^ FOR IMAGES
+export const validMimeTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+
+export const getSerialForImage = (filename: string) => {
+  const ext = path.parse(filename).ext;
+  return uuidv4() + ext;
 };
