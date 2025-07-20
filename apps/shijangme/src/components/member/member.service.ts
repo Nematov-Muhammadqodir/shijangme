@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Member } from '../../libs/dto/member/member';
+import { Member, Members } from '../../libs/dto/member/member';
 import { Model, ObjectId } from 'mongoose';
 import {
   LoginInput,
@@ -18,7 +18,7 @@ import { MemberUpdate } from '../../libs/dto/member/member.update';
 import { ViewInput } from '../../libs/dto/view/view.input';
 import { ViewGroup } from '../../libs/enums/view.enum';
 import { ViewService } from '../view/view.service';
-import { T } from '../../libs/types/common';
+import { StatisticModifier, T } from '../../libs/types/common';
 import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
 import { LikeService } from '../like/like.service';
@@ -170,7 +170,10 @@ export class MemberService {
       : [];
   }
 
-  public async getAgents(memberId: ObjectId, input: VendorsInquiry) {
+  public async getAgents(
+    memberId: ObjectId,
+    input: VendorsInquiry,
+  ): Promise<Members> {
     const { text } = input.search;
     const match: T = {
       memberType: MemberType.VENDOR,
@@ -204,5 +207,53 @@ export class MemberService {
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
     return result[0];
+  }
+
+  public async likeTargetMember(
+    memberId: ObjectId,
+    likeRefId: ObjectId,
+  ): Promise<Member> {
+    const targetMember = await this.memberModel
+      .findOne({
+        _id: likeRefId,
+        memberStatus: MemberStatus.ACTIVE,
+      })
+      .exec();
+
+    if (!targetMember)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    const likeInput: LikeInput = {
+      memberId: memberId,
+      likeRefId: likeRefId,
+      likeGroup: LikeGroup.MEMBER,
+    };
+
+    const modifier: number = await this.likeService.toggleLike(likeInput);
+
+    const result = await this.memberStatsEditor({
+      _id: likeRefId,
+      targetKey: 'memberLikes',
+      modifier: modifier,
+    });
+
+    if (!result)
+      throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
+
+    return result;
+  }
+
+  //! REUSABLE MEMBER DATA EDITOR
+  public async memberStatsEditor(input: StatisticModifier): Promise<Member> {
+    console.log('Service: memberStatsEditor');
+    const { _id, targetKey, modifier } = input;
+
+    return await this.memberModel
+      .findByIdAndUpdate(
+        _id,
+        { $inc: { [targetKey]: modifier } },
+        { new: true },
+      )
+      .exec();
   }
 }

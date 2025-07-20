@@ -16,6 +16,7 @@ import { MemberUpdate } from '../../libs/dto/member/member.update';
 import { ObjectId } from 'mongoose';
 import { WithoutGuard } from '../auth/guards/without.guard';
 import { shapeIntoMongoObjectId } from '../../libs/config';
+import { Like } from '../../libs/dto/like/like';
 
 @Resolver()
 export class MemberResolver {
@@ -81,5 +82,18 @@ export class MemberResolver {
   ): Promise<Members> {
     console.log('Query getAgents');
     return await this.memberService.getAgents(memberId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Member)
+  public async likeTargetMember(
+    @Args('memberId') input: string,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Member> {
+    console.log('Mutation likeTargetMember');
+
+    const likeRefId = shapeIntoMongoObjectId(input);
+
+    return await this.memberService.likeTargetMember(memberId, likeRefId);
   }
 }
