@@ -11,12 +11,24 @@ import { AuthService } from '../auth/auth.service';
 import { Message } from '../../libs/enums/common.enum';
 import { MemberStatus } from '../../libs/enums/member.enum';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
+import { ViewInput } from '../../libs/dto/view/view.input';
+import { ViewGroup } from '../../libs/enums/view.enum';
+import { ViewService } from '../view/view.service';
+import { T } from '../../libs/types/common';
+import { LikeInput } from '../../libs/dto/like/like.input';
+import { LikeGroup } from '../../libs/enums/like.enum';
+import { LikeService } from '../like/like.service';
+import { Follower, Following, MeFollowed } from '../../libs/dto/follow/follow';
 
 @Injectable()
 export class MemberService {
   constructor(
     @InjectModel('Member') private readonly memberModel: Model<Member>,
+    @InjectModel('Follow')
+    private readonly followModel: Model<Follower | Following>,
     private authService: AuthService,
+    private viewService: ViewService,
+    private likeService: LikeService,
   ) {}
 
   public async signup(input: MemberInput): Promise<Member> {
@@ -76,5 +88,73 @@ export class MemberService {
     result.accessToken = await this.authService.createToken(result);
 
     return result;
+  }
+
+  public async getMember(
+    memberId: ObjectId,
+    targetId: ObjectId,
+  ): Promise<Member> {
+    const search: T = {
+      _id: targetId,
+      memberStatus: { $in: [MemberStatus.ACTIVE, MemberStatus.BLOCK] },
+    };
+    const targetMember = await this.memberModel.findOne(search).lean().exec();
+    if (!targetMember)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    if (memberId) {
+      const viewInquery: ViewInput = {
+        viewGroup: ViewGroup.MEMBER,
+        viewRefId: targetId,
+        memberId: memberId,
+      };
+
+      const newView = await this.viewService.recordView(viewInquery);
+      //^RECORD VIEW
+      if (newView) {
+        await this.memberModel
+          .findOneAndUpdate(search, { $inc: { memberViews: 1 } }, { new: true })
+          .exec();
+
+        targetMember.memberViews++;
+      }
+      //& ME_LIKED
+      const likeInput: LikeInput = {
+        memberId: memberId,
+        likeRefId: targetId,
+        likeGroup: LikeGroup.MEMBER,
+      };
+
+      targetMember.meLiked =
+        await this.likeService.checkLikeExistance(likeInput);
+
+      //! ME_FOLLOWED
+
+      targetMember.meFollowed = await this.checkSubscription(
+        memberId,
+        targetId,
+      );
+    }
+    return targetMember;
+  }
+
+  private async checkSubscription(
+    followerId: ObjectId,
+    followingId: ObjectId,
+  ): Promise<MeFollowed[]> {
+    const result = await this.followModel.findOne({
+      followingId: followingId,
+      followerId: followerId,
+    });
+
+    return result
+      ? [
+          {
+            followerId: followerId,
+            followingId: followingId,
+            myFollowing: true,
+          },
+        ]
+      : [];
   }
 }

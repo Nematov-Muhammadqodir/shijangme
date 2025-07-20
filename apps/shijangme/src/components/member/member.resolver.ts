@@ -10,6 +10,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
 import { ObjectId } from 'mongoose';
+import { WithoutGuard } from '../auth/guards/without.guard';
+import { shapeIntoMongoObjectId } from '../../libs/config';
 
 @Resolver()
 export class MemberResolver {
@@ -53,5 +55,17 @@ export class MemberResolver {
     delete input._id;
 
     return await this.memberService.updateMember(memberId, input);
+  }
+
+  @UseGuards(WithoutGuard)
+  @Query(() => Member)
+  public async getMember(
+    @Args('memberId') input: string,
+    @AuthMember('_id') memberId: ObjectId,
+  ) {
+    console.log('Query getMember');
+    const targetId = shapeIntoMongoObjectId(input);
+
+    return await this.memberService.getMember(memberId, targetId);
   }
 }
