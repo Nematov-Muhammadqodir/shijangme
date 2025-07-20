@@ -10,7 +10,7 @@ export enum Message {
   UPLOAD_FAILED = 'Upload is failed!',
   BAD_REQUEST = 'Bad Request',
 
-  USED_MEMBER_NICK_OR_PHONE = 'Already used member nick or phone!',
+  USED_MEMBER_NICK_OR_PHONE = 'Already used member nick, phone or vendor number!',
   NO_MEMBER_NICK = 'No member with that member nick!',
   USED_NICK_PHONE = 'You are inserting already used nick or phone!',
   WRONG_PASSWORD = 'Wrong password, please try again!',
@@ -22,6 +22,8 @@ export enum Message {
   SELF_SUBSCRIPTION_DENIED = 'Self subscription is denied!',
   BLOCKED_USER = 'You have been blocked, contact restaurant!',
   TOKEN_CRAETION_FAILED = 'Token creation error!',
+
+  VENDOR_EXISTS = 'Vendor under this number already exists!',
 }
 
 export enum Direction {

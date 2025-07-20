@@ -75,6 +75,9 @@ export class Member {
   @Field(() => Int)
   memberBlocks: number;
 
+  @Field(() => Int)
+  vendorNumber: number;
+
   @Field(() => Date, { nullable: true })
   deletedAt?: Date;
 
