@@ -9,6 +9,7 @@ import { Model, ObjectId } from 'mongoose';
 import {
   LoginInput,
   MemberInput,
+  MembersInquiry,
   VendorsInquiry,
 } from '../../libs/dto/member/member.input';
 import { AuthService } from '../auth/auth.service';
@@ -170,7 +171,7 @@ export class MemberService {
       : [];
   }
 
-  public async getAgents(
+  public async getVendors(
     memberId: ObjectId,
     input: VendorsInquiry,
   ): Promise<Members> {
@@ -241,6 +242,41 @@ export class MemberService {
       throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
 
     return result;
+  }
+
+  //^ ADMIN RELATED APIs
+
+  public async getAllMembersByAdmin(input: MembersInquiry): Promise<Members> {
+    const { memberStatus, memberType, text } = input.search;
+    const match: T = {};
+    const sort: T = {
+      [input?.sort ?? 'createdAt']: input.direction ?? Direction.DESC,
+    };
+
+    if (memberStatus) match.MemberStatus = memberStatus;
+    if (memberType) match.memberType = memberType;
+    if (text) match.memberNick = { $regex: new RegExp(text, 'i') };
+    console.log('match', match);
+
+    const result = await this.memberModel
+      .aggregate([
+        { $match: match },
+        { $sort: sort },
+        {
+          $facet: {
+            list: [
+              { $skip: (input.page - 1) * input.limit },
+              { $limit: input.limit },
+            ],
+            metaCounter: [{ $count: 'total' }],
+          },
+        },
+      ])
+      .exec();
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+    return result[0];
   }
 
   //! REUSABLE MEMBER DATA EDITOR

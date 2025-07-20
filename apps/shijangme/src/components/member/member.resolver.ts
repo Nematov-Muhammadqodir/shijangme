@@ -4,7 +4,8 @@ import { Member, Members } from '../../libs/dto/member/member';
 import {
   LoginInput,
   MemberInput,
-  VendorsInquiry,
+  MembersInquiry,
+  VendorsInquiry as VendorsInquiry,
 } from '../../libs/dto/member/member.input';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -76,12 +77,12 @@ export class MemberResolver {
 
   @UseGuards(WithoutGuard)
   @Query(() => Members)
-  public async getAgents(
+  public async getVendors(
     @Args('input') input: VendorsInquiry,
     @AuthMember('_id') memberId: ObjectId,
   ): Promise<Members> {
-    console.log('Query getAgents');
-    return await this.memberService.getAgents(memberId, input);
+    console.log('Query getVendors');
+    return await this.memberService.getVendors(memberId, input);
   }
 
   @UseGuards(AuthGuard)
@@ -95,5 +96,18 @@ export class MemberResolver {
     const likeRefId = shapeIntoMongoObjectId(input);
 
     return await this.memberService.likeTargetMember(memberId, likeRefId);
+  }
+
+  //^ ADMIN RELATED APIs
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(RolesGuard)
+  @Query(() => Members)
+  public async getAllMembersByAdmin(
+    @Args('input') input: MembersInquiry,
+  ): Promise<Members> {
+    console.log('Mutation:getAllMembersByAdmin');
+
+    return await this.memberService.getAllMembersByAdmin(input);
   }
 }
