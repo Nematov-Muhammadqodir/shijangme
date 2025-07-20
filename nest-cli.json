@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/shijangme/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/shijangme/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/shijangme",
+  "projects": {
+    "shijangme": {
+      "type": "application",
+      "root": "apps/shijangme",
+      "entryFile": "main",
+      "sourceRoot": "apps/shijangme/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/shijangme/tsconfig.app.json"
+      }
+    },
+    "shijangme-batch": {
+      "type": "application",
+      "root": "apps/shijangme-batch",
+      "entryFile": "main",
+      "sourceRoot": "apps/shijangme-batch/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/shijangme-batch/tsconfig.app.json"
+      }
+    }
+  }
+}
