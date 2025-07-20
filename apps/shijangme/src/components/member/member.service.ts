@@ -279,6 +279,15 @@ export class MemberService {
     return result[0];
   }
 
+  public async updateMemberByAdmin(input: MemberUpdate): Promise<Member> {
+    const result: Member = await this.memberModel
+      .findOneAndUpdate({ _id: input._id }, input, { new: true })
+      .exec();
+
+    if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+    return result;
+  }
+
   //! REUSABLE MEMBER DATA EDITOR
   public async memberStatsEditor(input: StatisticModifier): Promise<Member> {
     console.log('Service: memberStatsEditor');
