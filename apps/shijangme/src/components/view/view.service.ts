@@ -21,7 +21,7 @@ export class ViewService {
     }
   }
 
-  private async checkViewExistance(input: ViewInput): Promise<View> {
+  public async checkViewExistance(input: ViewInput): Promise<View> {
     const { memberId, viewRefId } = input;
 
     const search: T = { memberId: memberId, viewRefId: viewRefId };

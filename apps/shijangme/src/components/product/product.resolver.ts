@@ -1,4 +1,4 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UseGuards } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -8,6 +8,8 @@ import { ProductInput } from '../../libs/dto/product/product.input';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
 import { ProductService } from './product.service';
+import { WithoutGuard } from '../auth/guards/without.guard';
+import { shapeIntoMongoObjectId } from '../../libs/config';
 
 @Resolver()
 export class ProductResolver {
@@ -22,5 +24,17 @@ export class ProductResolver {
   ): Promise<Product> {
     input.productOwnerId = productOwnerId;
     return await this.productService.createProduct(input);
+  }
+
+  @UseGuards(WithoutGuard)
+  @Query((returns) => Product)
+  public async getProduct(
+    @Args('productId') input: string,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Product> {
+    console.log('Query getProduct');
+
+    const productId = shapeIntoMongoObjectId(input);
+    return await this.productService.getProduct(memberId, productId);
   }
 }

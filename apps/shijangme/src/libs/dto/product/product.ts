@@ -48,7 +48,7 @@ export class Product {
   // from aggregation
 
   @Field(() => Member, { nullable: true })
-  memberData?: Member;
+  productOwnerData?: Member;
   //================
 
   @Field(() => Date)
