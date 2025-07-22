@@ -21,6 +21,9 @@ export class Product {
   @Field(() => Number)
   productPrice: string;
 
+  @Field(() => Number, { nullable: true })
+  productOriginPrice?: string;
+
   @Field(() => Int)
   productViews: number;
 
@@ -32,6 +35,21 @@ export class Product {
 
   @Field(() => Int)
   productRank: number;
+
+  @Field(() => Int)
+  productVolume: number;
+
+  @Field(() => Int)
+  productLeftCount: number;
+
+  @Field(() => Int)
+  productSoldCount: number;
+
+  @Field(() => String)
+  productOrigin: string;
+
+  @Field(() => Int)
+  productDiscountRate: number;
 
   @Field(() => [String])
   productImages: string[];

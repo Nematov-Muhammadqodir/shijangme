@@ -23,6 +23,7 @@ registerEnumType(ProductStatus, {
 });
 
 export enum ProductVolume {
+  ZERO = 0,
   HALF = 0.5,
   ONE = 1,
   TWO = 2,
@@ -32,4 +33,21 @@ export enum ProductVolume {
 }
 registerEnumType(ProductVolume, {
   name: 'ProductVolume',
+});
+
+export enum ProductFrom {
+  KOREA = 'KOREA',
+  CHINA = 'CHINA',
+  SEOUL = 'SEOUL',
+  ULSAN = 'ULSAN',
+  DAEGU = 'DAEGU',
+  BUSAN = 'BUSAN',
+  US = 'US',
+  JEJU = 'JEJU',
+  TAILAND = 'TAILAND',
+  TAIWAN = 'TAIWAN',
+  MIRYANG = 'MIRYANG',
+}
+registerEnumType(ProductFrom, {
+  name: 'ProductFrom',
 });

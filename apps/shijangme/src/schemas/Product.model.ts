@@ -1,6 +1,7 @@
 import { Schema } from 'mongoose';
 import {
   ProductCollection,
+  ProductFrom,
   ProductStatus,
   ProductVolume,
 } from '../libs/enums/product.enum';
@@ -21,18 +22,42 @@ const ProductSchema = new Schema(
       type: String,
       required: true,
     },
+
     productPrice: {
       type: Number,
       required: true,
     },
+
+    productOriginPrice: {
+      type: Number,
+      required: true,
+    },
+
+    productDiscountRate: {
+      type: Number,
+      default: 0,
+    },
+
+    productSoldCount: {
+      type: Number,
+      default: 0,
+    },
+
+    productOrigin: {
+      type: String,
+      enum: ProductFrom,
+      default: ProductFrom.KOREA,
+    },
+
     productLeftCount: {
       type: Number,
       required: true,
     },
+
     productVolume: {
       type: Number,
       enum: ProductVolume,
-      default: ProductVolume.TWO,
+      default: ProductVolume.ZERO,
     },
     productDesc: {
       type: String,

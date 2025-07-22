@@ -19,6 +19,15 @@ export const availableMemberSorts = [
   'memberViews',
 ];
 
+export const availableProducts = [
+  'createdAt',
+  'updatedAt',
+  'productLikes',
+  'productViews',
+  'productRank',
+  'productPrice',
+];
+
 export const shapeIntoMongoObjectId = (target: any) => {
   console.log('target id', target);
   console.log('target id type', typeof target);
@@ -60,6 +69,15 @@ export const lookupAuthMemberLiked = (
       as: 'meLiked',
     },
   };
+};
+
+export const lookupMember = {
+  $lookup: {
+    from: 'members',
+    localField: 'productOwnerId',
+    foreignField: '_id',
+    as: 'productOwnerData',
+  },
 };
 
 //^ FOR IMAGES

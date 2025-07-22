@@ -5,12 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
-import { Product } from '../../libs/dto/product/product';
+import { Product, Products } from '../../libs/dto/product/product';
 import { MemberService } from '../member/member.service';
 import { ViewService } from '../view/view.service';
 import { LikeService } from '../like/like.service';
-import { ProductInput } from '../../libs/dto/product/product.input';
-import { Message } from '../../libs/enums/common.enum';
+import {
+  ProductInput,
+  ProductsInquiry,
+} from '../../libs/dto/product/product.input';
+import { Direction, Message } from '../../libs/enums/common.enum';
 import { StatisticModifier, T } from '../../libs/types/common';
 import { ProductStatus } from '../../libs/enums/product.enum';
 import { ViewInput } from '../../libs/dto/view/view.input';
@@ -19,6 +22,8 @@ import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
 import { ProductUpdate } from '../../libs/dto/product/product.update';
 import * as moment from 'moment';
+import { skip } from 'node:test';
+import { lookupAuthMemberLiked, lookupMember } from '../../libs/config';
 
 @Injectable()
 export class ProductService {
@@ -138,6 +143,57 @@ export class ProductService {
     }
 
     return result;
+  }
+
+  public async getProducts(
+    memberId: ObjectId,
+    input: ProductsInquiry,
+  ): Promise<Products> {
+    console.log('getProducts input', input);
+    const match: T = { productStatus: ProductStatus.ACTIVE };
+    const sort: T = {
+      [input.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
+    };
+
+    if (input.search.productOwnerId) {
+      match.productOwnerId = input.search.productOwnerId;
+    }
+    if (input.search.productCollection) {
+      match.productCollection = input.search.productCollection;
+    }
+    if (input.search.productVolume) {
+      match.productVolume = input.search.productVolume;
+    }
+    if (input.search.text) {
+      match.productName = { $regex: new RegExp(input.search.text, 'i') };
+    }
+    if (input.search.productOrigin) {
+      match.productOrigin = input.search.productOrigin;
+    }
+    if (input.search.productDiscountRate) {
+      match.productDiscountRate = input.search.productDiscountRate;
+    }
+
+    const result = await this.productModel.aggregate([
+      { $match: match },
+      { $sort: sort },
+      {
+        $facet: {
+          list: [
+            { $skip: (input.page - 1) * input.limit },
+            { $limit: input.limit },
+            lookupAuthMemberLiked(memberId),
+            lookupMember,
+            { $unwind: '$productOwnerData' },
+          ],
+          metaCounter: [{ $count: 'total' }],
+        },
+      },
+    ]);
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0] as Products;
   }
 
   public async productStatsEditor(input: StatisticModifier): Promise<Product> {
