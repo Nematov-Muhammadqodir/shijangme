@@ -10,6 +10,7 @@ import { MemberService } from '../member/member.service';
 import { ViewService } from '../view/view.service';
 import { LikeService } from '../like/like.service';
 import {
+  OrdinaryInquery,
   ProductInput,
   ProductsInquiry,
 } from '../../libs/dto/product/product.input';
@@ -194,6 +195,13 @@ export class ProductService {
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
     return result[0] as Products;
+  }
+
+  public async getFavorites(
+    memberId: ObjectId,
+    input: OrdinaryInquery,
+  ): Promise<Products> {
+    return await this.likeService.getFavoriteProducts(memberId, input);
   }
 
   public async productStatsEditor(input: StatisticModifier): Promise<Product> {

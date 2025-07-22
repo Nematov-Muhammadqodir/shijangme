@@ -106,3 +106,16 @@ export class ProductsInquiry {
   @Field(() => PISearch)
   search: PISearch;
 }
+
+@InputType()
+export class OrdinaryInquery {
+  @IsNotEmpty()
+  @Min(1)
+  @Field(() => Int)
+  page: number;
+
+  @IsNotEmpty()
+  @Min(1)
+  @Field(() => Int)
+  limit: number;
+}

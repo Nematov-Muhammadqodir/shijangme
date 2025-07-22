@@ -5,6 +5,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { Product, Products } from '../../libs/dto/product/product';
 import {
+  OrdinaryInquery,
   ProductInput,
   ProductsInquiry,
 } from '../../libs/dto/product/product.input';
@@ -14,6 +15,7 @@ import { ProductService } from './product.service';
 import { WithoutGuard } from '../auth/guards/without.guard';
 import { shapeIntoMongoObjectId } from '../../libs/config';
 import { ProductUpdate } from '../../libs/dto/product/product.update';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @Resolver()
 export class ProductResolver {
@@ -65,5 +67,15 @@ export class ProductResolver {
         input?.search?.productOwnerId,
       );
     return await this.productService.getProducts(memberId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => Products)
+  public async getFavorites(
+    @Args('input') input: OrdinaryInquery,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Products> {
+    console.log('Query getFavorites');
+    return await this.productService.getFavorites(memberId, input);
   }
 }
