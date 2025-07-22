@@ -204,6 +204,15 @@ export class ProductService {
     return await this.likeService.getFavoriteProducts(memberId, input);
   }
 
+  public async getVisited(
+    memberId: ObjectId,
+    input: OrdinaryInquery,
+  ): Promise<Products> {
+    const result = await this.viewService.getVisitedProducts(memberId, input);
+    console.log('getVisited esult', result);
+    return result;
+  }
+
   public async productStatsEditor(input: StatisticModifier): Promise<Product> {
     console.log('Service: productStatsEditor');
     const { _id, targetKey, modifier } = input;

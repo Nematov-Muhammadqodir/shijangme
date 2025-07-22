@@ -89,6 +89,15 @@ export const lookupFavorite = {
   },
 };
 
+export const lookupVisit = {
+  $lookup: {
+    from: 'members',
+    localField: 'visitedProduct.productOwnerId',
+    foreignField: '_id',
+    as: 'visitedProduct.productOwnerData',
+  },
+};
+
 //^ FOR IMAGES
 export const validMimeTypes = ['image/png', 'image/jpg', 'image/jpeg'];
 
