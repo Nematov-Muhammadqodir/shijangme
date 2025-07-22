@@ -17,6 +17,8 @@ import { ViewInput } from '../../libs/dto/view/view.input';
 import { ViewGroup } from '../../libs/enums/view.enum';
 import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
+import { ProductUpdate } from '../../libs/dto/product/product.update';
+import * as moment from 'moment';
 
 @Injectable()
 export class ProductService {
@@ -98,6 +100,44 @@ export class ProductService {
     console.log(' targetProduct.productOwnerData after', targetProduct);
 
     return targetProduct;
+  }
+
+  public async updateProduct(
+    productOwnerId: ObjectId,
+    input: ProductUpdate,
+  ): Promise<Product> {
+    let { productStatus, deletedAt, soldAt } = input;
+
+    const search = {
+      _id: input._id,
+      productOwnerId: productOwnerId,
+    };
+
+    if (productStatus === ProductStatus.DELETE) deletedAt = moment().toDate();
+    if (productStatus === ProductStatus.SOLD) soldAt = moment().toDate();
+
+    const result = await this.productModel.findOneAndUpdate(search, input, {
+      new: true,
+    });
+
+    if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+    if (soldAt || deletedAt) {
+      await this.memberService.memberStatsEditor({
+        _id: productOwnerId,
+        targetKey: 'memberProducts',
+        modifier: -1,
+      });
+    }
+    if (productStatus === ProductStatus.ACTIVE) {
+      await this.memberService.memberStatsEditor({
+        _id: productOwnerId,
+        targetKey: 'memberProducts',
+        modifier: 1,
+      });
+    }
+
+    return result;
   }
 
   public async productStatsEditor(input: StatisticModifier): Promise<Product> {

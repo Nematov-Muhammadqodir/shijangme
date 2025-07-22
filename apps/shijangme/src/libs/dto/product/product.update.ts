@@ -44,4 +44,8 @@ export class ProductUpdate {
   @IsOptional()
   @Field(() => Number, { nullable: true })
   productViews?: number;
+
+  soldAt?: Date;
+
+  deletedAt?: Date;
 }
