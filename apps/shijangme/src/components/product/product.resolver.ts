@@ -5,6 +5,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { Product, Products } from '../../libs/dto/product/product';
 import {
+  AllProductsInquery,
   OrdinaryInquery,
   ProductInput,
   ProductsInquiry,
@@ -113,5 +114,19 @@ export class ProductResolver {
     const productId = shapeIntoMongoObjectId(input);
 
     return await this.productService.likeTargetProduct(memeberId, productId);
+  }
+
+  //& APIs for ADMINs
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(RolesGuard)
+  @Query(() => Products)
+  public async getAllProductsByAdmin(
+    @Args('input') input: AllProductsInquery,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Products> {
+    console.log('Query getAllProducts');
+
+    return await this.productService.getAllProductsByAdmin(input);
   }
 }

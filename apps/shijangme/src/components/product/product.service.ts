@@ -10,6 +10,7 @@ import { MemberService } from '../member/member.service';
 import { ViewService } from '../view/view.service';
 import { LikeService } from '../like/like.service';
 import {
+  AllProductsInquery,
   OrdinaryInquery,
   ProductInput,
   ProductsInquiry,
@@ -293,5 +294,40 @@ export class ProductService {
       throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
 
     return result;
+  }
+
+  public async getAllProductsByAdmin(
+    input: AllProductsInquery,
+  ): Promise<Products> {
+    const { productStatus, productFromList } = input.search;
+
+    const match: T = {};
+
+    const sort: T = {
+      [input.sort ?? 'createdAt']: input.direction ?? Direction.DESC,
+    };
+
+    if (productStatus) match.productStatus = productStatus;
+    if (productFromList) match.productOrigin = { $in: productFromList };
+
+    const result = await this.productModel.aggregate([
+      { $match: match },
+      { $sort: sort },
+      {
+        $facet: {
+          list: [
+            { $skip: (input.page - 1) * input.limit },
+            { $limit: input.limit },
+            lookupMember,
+            { $unwind: '$productOwnerData' },
+          ],
+        },
+      },
+    ]);
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0] as Products;
   }
 }
