@@ -2,6 +2,7 @@ import { ObjectId } from 'mongoose';
 import { OrderStatus } from '../../enums/order.enum';
 import { IsNotEmpty, Min } from 'class-validator';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { TotalCounter } from '../member/member';
 
 @ObjectType()
 export class OrderItem {
@@ -28,6 +29,21 @@ export class OrderItem {
 }
 
 @ObjectType()
+export class OrderItemFromAggregation {
+  @Field(() => Int)
+  itemQuantity: number;
+
+  @Field(() => Int)
+  itemPrice: number;
+
+  @Field(() => String)
+  orderId: ObjectId;
+
+  @Field(() => String)
+  productId: string;
+}
+
+@ObjectType()
 export class Order {
   @Field(() => String)
   _id: ObjectId;
@@ -49,4 +65,16 @@ export class Order {
 
   @Field(() => Date)
   updatedAt: Date;
+
+  @Field(() => [OrderItemFromAggregation])
+  orderItems: OrderItemFromAggregation[];
+}
+
+@ObjectType()
+export class Orders {
+  @Field(() => [Order])
+  list: Order[];
+
+  @Field(() => [TotalCounter], { nullable: true })
+  metaCounter: TotalCounter[];
 }

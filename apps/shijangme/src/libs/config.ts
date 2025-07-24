@@ -71,6 +71,36 @@ export const lookupAuthMemberLiked = (
   };
 };
 
+export const lookupOrderItems = (orderId: string = '$_id') => {
+  return {
+    $lookup: {
+      from: 'orderItems',
+      let: {
+        localOrderId: orderId,
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [{ $eq: ['$orderId', '$$localOrderId'] }],
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            itemQuantity: 1,
+            itemPrice: 1,
+            orderId: 1,
+            productId: 1,
+          },
+        },
+      ],
+      as: 'orderItems',
+    },
+  };
+};
+
 export const lookupMember = {
   $lookup: {
     from: 'members',
@@ -95,6 +125,15 @@ export const lookupVisit = {
     localField: 'visitedProduct.productOwnerId',
     foreignField: '_id',
     as: 'visitedProduct.productOwnerData',
+  },
+};
+
+export const lookupOrderItemProducts = {
+  $lookup: {
+    from: 'products',
+    localField: 'orderItems.productId',
+    foreignField: '_id',
+    as: 'productData',
   },
 };
 

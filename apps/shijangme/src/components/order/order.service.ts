@@ -1,13 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
-import { Order, OrderItem } from '../../libs/dto/order/order';
+import { Order, OrderItem, Orders } from '../../libs/dto/order/order';
 import {
+  OrderInquery,
   OrderItemInput,
   OrderItemsInput,
 } from '../../libs/dto/order/order.input';
 import { Message } from '../../libs/enums/common.enum';
-import { shapeIntoMongoObjectId } from '../../libs/config';
+import {
+  lookupOrderItemProducts,
+  lookupOrderItems,
+  shapeIntoMongoObjectId,
+} from '../../libs/config';
+import { T } from '../../libs/types/common';
 
 @Injectable()
 export class OrderService {
@@ -59,5 +65,38 @@ export class OrderService {
     });
     const orderItemsState = await Promise.all(promisedList);
     console.log('orderItemsState', orderItemsState);
+  }
+
+  public async getMyOrders(
+    memberId: ObjectId,
+    inquery: OrderInquery,
+  ): Promise<Orders> {
+    const { page, limit } = inquery;
+    const { orderStatus } = inquery.search;
+
+    const match: T = { orderStatus: orderStatus, memberId: memberId };
+
+    const result = await this.orderModel
+      .aggregate([
+        { $match: match },
+        { $sort: { updatedAt: -1 } },
+        {
+          $facet: {
+            list: [
+              { $skip: (page - 1) * limit },
+              { $limit: limit },
+              lookupOrderItems(),
+            ],
+            metaCounter: [{ $count: 'total' }],
+          },
+        },
+      ])
+      .exec();
+    console.log('myOrders', result);
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0];
   }
 }

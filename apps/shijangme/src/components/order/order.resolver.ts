@@ -1,8 +1,9 @@
 import { forwardRef, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthGuard } from '../auth/guards/auth.guard';
-import { Order } from '../../libs/dto/order/order';
+import { Order, Orders } from '../../libs/dto/order/order';
 import {
+  OrderInquery,
   OrderItemInput,
   OrderItemsInput,
 } from '../../libs/dto/order/order.input';
@@ -23,5 +24,16 @@ export class OrderResolver {
   ): Promise<Order> {
     console.log('Mutation createOrder');
     return await this.orderService.createOrder(memberId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => Orders)
+  public async getMyOrders(
+    @Args('input') input: OrderInquery,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Orders> {
+    console.log('Query getMyOrders');
+
+    return await this.orderService.getMyOrders(memberId, input);
   }
 }
