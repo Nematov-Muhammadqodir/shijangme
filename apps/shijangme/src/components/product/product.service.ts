@@ -330,4 +330,34 @@ export class ProductService {
 
     return result[0] as Products;
   }
+
+  public async updateProductByAdmin(input: ProductUpdate): Promise<Product> {
+    let { soldAt, deletedAt, productStatus } = input;
+
+    const search: T = {
+      _id: input._id,
+      productStatus: ProductStatus.ACTIVE,
+    };
+
+    if ((productStatus = ProductStatus.SOLD)) soldAt = moment().toDate();
+    if ((productStatus = ProductStatus.DELETE)) deletedAt = moment().toDate();
+
+    const result = await this.productModel
+      .findOneAndUpdate(search, input, {
+        new: true,
+      })
+      .exec();
+
+    if (!result) throw new InternalServerErrorException(Message.UPLOAD_FAILED);
+
+    if (soldAt || deletedAt) {
+      await this.memberService.memberStatsEditor({
+        _id: result.productOwnerId,
+        targetKey: 'memberProducts',
+        modifier: -1,
+      });
+    }
+
+    return result;
+  }
 }
