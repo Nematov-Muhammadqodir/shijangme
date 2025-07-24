@@ -8,6 +8,7 @@ import {
   OrdinaryInquery,
   ProductInput,
   ProductsInquiry,
+  VendorProductsInquery,
 } from '../../libs/dto/product/product.input';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
@@ -87,5 +88,17 @@ export class ProductResolver {
   ): Promise<Products> {
     console.log('Query getVisited');
     return await this.productService.getVisited(memberId, input);
+  }
+
+  @Roles(MemberType.VENDOR)
+  @UseGuards(RolesGuard)
+  @Query(() => Products)
+  public async getVendorProducts(
+    @Args('input') input: VendorProductsInquery,
+    @AuthMember('_id') vendorId: ObjectId,
+  ): Promise<Products> {
+    console.log('Query getVendorProducts');
+
+    return await this.productService.getVendorProducts(vendorId, input);
   }
 }

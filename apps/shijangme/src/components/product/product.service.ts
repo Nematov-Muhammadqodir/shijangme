@@ -13,6 +13,7 @@ import {
   OrdinaryInquery,
   ProductInput,
   ProductsInquiry,
+  VendorProductsInquery,
 } from '../../libs/dto/product/product.input';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { StatisticModifier, T } from '../../libs/types/common';
@@ -222,5 +223,42 @@ export class ProductService {
       { $inc: { [targetKey]: modifier } },
       { new: true },
     );
+  }
+
+  public async getVendorProducts(
+    memberId: ObjectId,
+    input: VendorProductsInquery,
+  ): Promise<Products> {
+    const { productStatus } = input.search;
+
+    const match: T = {
+      productOwnerId: memberId,
+      productStatus: productStatus ?? { $ne: ProductStatus.DELETE },
+    };
+
+    const sort: T = {
+      [input.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
+    };
+
+    const result = await this.productModel.aggregate([
+      { $match: match },
+      { $sort: sort },
+      {
+        $facet: {
+          list: [
+            { $skip: (input.page - 1) * input.limit },
+            { $limit: input.limit },
+            lookupMember,
+            { $unwind: '$productOwnerData' },
+          ],
+          metaCounter: [{ $count: 'total' }],
+        },
+      },
+    ]);
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0];
   }
 }
