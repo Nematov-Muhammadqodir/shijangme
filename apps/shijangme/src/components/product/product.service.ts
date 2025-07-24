@@ -261,4 +261,37 @@ export class ProductService {
 
     return result[0];
   }
+
+  public async likeTargetProduct(
+    memberId: ObjectId,
+    productId: ObjectId,
+  ): Promise<Product> {
+    const target: Product = await this.productModel
+      .findOne({
+        _id: productId,
+        productStatus: ProductStatus.ACTIVE,
+      })
+      .exec();
+
+    if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    const likeInput: LikeInput = {
+      memberId: memberId,
+      likeRefId: productId,
+      likeGroup: LikeGroup.PRODUCT,
+    };
+
+    const modifier = await this.likeService.toggleLike(likeInput);
+
+    const result = await this.productStatsEditor({
+      _id: productId,
+      targetKey: 'productLikes',
+      modifier: modifier,
+    });
+
+    if (!result)
+      throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
+
+    return result;
+  }
 }

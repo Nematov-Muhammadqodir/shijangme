@@ -101,4 +101,17 @@ export class ProductResolver {
 
     return await this.productService.getVendorProducts(vendorId, input);
   }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Product)
+  public async likeTargetProduct(
+    @Args('productId') input: string,
+    @AuthMember('_id') memeberId: ObjectId,
+  ): Promise<Product> {
+    console.log('Mutation likeTargetProduct');
+
+    const productId = shapeIntoMongoObjectId(input);
+
+    return await this.productService.likeTargetProduct(memeberId, productId);
+  }
 }
