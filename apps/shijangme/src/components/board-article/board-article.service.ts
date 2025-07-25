@@ -17,6 +17,7 @@ import { ViewInput } from '../../libs/dto/view/view.input';
 import { ViewGroup } from '../../libs/enums/view.enum';
 import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
+import { BoardArticleUpdate } from '../../libs/dto/board-article/board-article.update';
 
 @Injectable()
 export class BoardArticleService {
@@ -102,6 +103,35 @@ export class BoardArticleService {
     );
 
     return targetBoardArticle;
+  }
+
+  public async updateBoardArticle(
+    memberId: ObjectId,
+    input: BoardArticleUpdate,
+  ): Promise<BoardArticle> {
+    const { _id, articleStatus } = input;
+
+    const result = await this.boardArticleModel.findOneAndUpdate(
+      {
+        _id: _id,
+        memberId: memberId,
+        articleStatus: BoardArticleStatus.ACTIVE,
+      },
+      input,
+      { new: true },
+    );
+
+    if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+    if (articleStatus === BoardArticleStatus.DELETE) {
+      await this.memberService.memberStatsEditor({
+        _id: memberId,
+        targetKey: 'memberArticles',
+        modifier: -1,
+      });
+    }
+
+    return result;
   }
 
   public async boardArticleStatsEditor(
