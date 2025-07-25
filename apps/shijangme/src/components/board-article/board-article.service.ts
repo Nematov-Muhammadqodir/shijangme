@@ -157,7 +157,15 @@ export class BoardArticleService {
     };
 
     if (articleCategory) match.articleCategory = articleCategory;
-    if (text) match.text = { $regex: new RegExp(text, 'i') };
+    if (text) {
+      // Create a regex for case-insensitive search
+      const textRegex = new RegExp(text, 'i');
+      // Use $or to search across articleTitle AND articleContent
+      match.$or = [
+        { articleTitle: { $regex: textRegex } },
+        { articleContent: { $regex: textRegex } },
+      ];
+    }
     if (input?.search?.memberId)
       match.memberId = shapeIntoMongoObjectId(input?.search?.memberId);
 
