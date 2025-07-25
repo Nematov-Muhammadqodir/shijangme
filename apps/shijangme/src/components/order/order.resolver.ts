@@ -10,6 +10,8 @@ import {
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
 import { OrderService } from './order.service';
+import { OrderUpdateInput } from '../../libs/dto/order/order.update';
+import { shapeIntoMongoObjectId } from '../../libs/config';
 console.log('Is OrderItemInput defined?', OrderItemInput);
 @Resolver()
 export class OrderResolver {
@@ -35,5 +37,17 @@ export class OrderResolver {
     console.log('Query getMyOrders');
 
     return await this.orderService.getMyOrders(memberId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Order)
+  public async updateOrder(
+    @Args('input') input: OrderUpdateInput,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Order> {
+    console.log('Mutation updateOrder');
+    input.orderId = shapeIntoMongoObjectId(input.orderId);
+
+    return await this.orderService.updateOrder(memberId, input);
   }
 }

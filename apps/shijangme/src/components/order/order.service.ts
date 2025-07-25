@@ -14,12 +14,16 @@ import {
   shapeIntoMongoObjectId,
 } from '../../libs/config';
 import { T } from '../../libs/types/common';
+import { OrderUpdateInput } from '../../libs/dto/order/order.update';
+import { OrderStatus } from '../../libs/enums/order.enum';
+import { MemberService } from '../member/member.service';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectModel('OrderItem') private readonly orderItemModel: Model<OrderItem>,
     @InjectModel('Order') private readonly orderModel: Model<Order>,
+    private readonly memberService: MemberService,
   ) {}
 
   public async createOrder(
@@ -98,5 +102,41 @@ export class OrderService {
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
     return result[0];
+  }
+
+  public async updateOrder(
+    memberId: ObjectId,
+    input: OrderUpdateInput,
+  ): Promise<Order> {
+    const isProcessed = await this.orderModel
+      .findOne({
+        memberId: memberId,
+        _id: input.orderId,
+        orderStatus: OrderStatus.PROCESS,
+      })
+      .exec();
+    const result = await this.orderModel
+      .findOneAndUpdate(
+        {
+          memberId: memberId,
+          _id: input.orderId,
+        },
+        { orderStatus: input.orderStatus },
+        { new: true },
+      )
+      .exec();
+
+    if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+    if (!isProcessed) {
+      if (input.orderStatus === OrderStatus.PROCESS)
+        this.memberService.memberStatsEditor({
+          _id: memberId,
+          targetKey: 'memberPoints',
+          modifier: 1,
+        });
+    }
+
+    return result;
   }
 }

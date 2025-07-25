@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import OrderItemSchema from '../../schemas/OrderItem.model';
 import OrderSchema from '../../schemas/Order.model';
 import { AuthModule } from '../auth/auth.module';
+import { MemberModule } from '../member/member.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { AuthModule } from '../auth/auth.module';
       { name: 'Order', schema: OrderSchema },
     ]),
     AuthModule,
+    MemberModule,
   ],
   providers: [OrderResolver, OrderService],
 })
