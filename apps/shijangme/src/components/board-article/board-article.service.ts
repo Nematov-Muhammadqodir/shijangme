@@ -196,6 +196,36 @@ export class BoardArticleService {
     return result[0];
   }
 
+  public async likeTargetBoardArticle(
+    memberId: ObjectId,
+    articleId: ObjectId,
+  ): Promise<BoardArticle> {
+    const targetArticle = await this.boardArticleModel.findOne({
+      _id: articleId,
+      articleStatus: BoardArticleStatus.ACTIVE,
+    });
+    if (!targetArticle)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    const likeInput: LikeInput = {
+      likeGroup: LikeGroup.ARTICLE,
+      likeRefId: articleId,
+      memberId: memberId,
+    };
+    const modifier: number = await this.likeService.toggleLike(likeInput);
+
+    const result = await this.boardArticleStatsEditor({
+      _id: articleId,
+      targetKey: 'articleLikes',
+      modifier: modifier,
+    });
+
+    if (!result)
+      throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
+
+    return result;
+  }
+
   public async boardArticleStatsEditor(
     input: StatisticModifier,
   ): Promise<BoardArticle> {
