@@ -28,6 +28,13 @@ export const availableProducts = [
   'productPrice',
 ];
 
+export const availableBoardArticleSorts = [
+  'createdAt',
+  'updatedAt',
+  'articleLikes',
+  'articleViews',
+];
+
 export const shapeIntoMongoObjectId = (target: any) => {
   console.log('target id', target);
   console.log('target id type', typeof target);
