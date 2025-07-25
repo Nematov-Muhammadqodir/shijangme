@@ -1,7 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
-import { Follower, Following, Followings } from '../../libs/dto/follow/follow';
+import {
+  Follower,
+  Followers,
+  Following,
+  Followings,
+} from '../../libs/dto/follow/follow';
 import { MemberService } from '../member/member.service';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { FollowInquiry } from '../../libs/dto/follow/follow.input';
@@ -9,6 +14,7 @@ import { T } from '../../libs/types/common';
 import {
   lookupAuthMemberFollowed,
   lookupAuthMemberLiked,
+  lookupFollowerData,
   lookupFollowingData,
 } from '../../libs/config';
 
@@ -133,5 +139,45 @@ export class FollowService {
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
     return result[0] as Followings;
+  }
+
+  public async getMemberFollowers(
+    memberId: ObjectId,
+    input: FollowInquiry,
+  ): Promise<Followers> {
+    const { page, limit, search } = input;
+
+    if (!search.followingId)
+      throw new InternalServerErrorException(Message.BAD_REQUEST);
+    const match: T = { followingId: search?.followingId };
+    const sort: T = { createdAt: Direction.DESC };
+
+    const result = await this.followModel
+      .aggregate([
+        { $match: match },
+        { $sort: sort },
+        {
+          $facet: {
+            list: [
+              { $skip: (page - 1) * limit },
+              { $limit: limit },
+              lookupAuthMemberLiked(memberId, '$followerId'),
+              lookupAuthMemberFollowed({
+                followerId: memberId,
+                followingId: '$followerId',
+              }),
+              lookupFollowerData,
+              { $unwind: '$followerData' },
+            ],
+            metaCounter: [{ $count: 'total' }],
+          },
+        },
+      ])
+      .exec();
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0] as Followers;
   }
 }
