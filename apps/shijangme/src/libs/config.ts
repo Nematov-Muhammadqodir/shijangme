@@ -173,6 +173,14 @@ export const lookupMember = {
     as: 'productOwnerData',
   },
 };
+export const lookupMemberGeneral = {
+  $lookup: {
+    from: 'members',
+    localField: 'memberId',
+    foreignField: '_id',
+    as: 'memberData',
+  },
+};
 
 export const lookupFavorite = {
   $lookup: {
