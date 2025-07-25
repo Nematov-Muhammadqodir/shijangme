@@ -13,6 +13,7 @@ import { MemberService } from '../member/member.service';
 import { ViewService } from '../view/view.service';
 import { LikeService } from '../like/like.service';
 import {
+  AllBoardArticlesInquiry,
   BoardArticleInput,
   BoardArticlesInquiry,
 } from '../../libs/dto/board-article/board-article.input';
@@ -224,6 +225,41 @@ export class BoardArticleService {
       throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
 
     return result;
+  }
+
+  public async getAllBoardArticlesByAdmin(
+    input: AllBoardArticlesInquiry,
+  ): Promise<BoardArticles> {
+    const { articleStatus, articleCategory } = input.search;
+
+    const match: T = {};
+    const sort: T = {
+      [input.sort ?? 'createdAt']: input.direction ?? Direction.DESC,
+    };
+
+    if (articleStatus) match.articleStatus = articleStatus;
+    if (articleCategory) match.articleCategory = articleCategory;
+
+    const result = await this.boardArticleModel.aggregate([
+      { $match: match },
+      { $sort: sort },
+      {
+        $facet: {
+          list: [
+            { $skip: (input.page - 1) * input.limit },
+            { $limit: input.limit },
+            lookupMemberGeneral,
+            { $unwind: '$memberData' },
+          ],
+          metaCounter: [{ $count: 'total' }],
+        },
+      },
+    ]);
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0];
   }
 
   public async boardArticleStatsEditor(
