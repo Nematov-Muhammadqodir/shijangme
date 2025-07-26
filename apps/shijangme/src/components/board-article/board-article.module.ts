@@ -18,7 +18,6 @@ import { ViewModule } from '../view/view.module';
     AuthModule,
     LikeModule,
     ViewModule,
-    CommentModule,
   ],
   providers: [BoardArticleResolver, BoardArticleService],
   exports: [BoardArticleService],

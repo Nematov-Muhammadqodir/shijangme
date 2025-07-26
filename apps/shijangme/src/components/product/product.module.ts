@@ -17,5 +17,6 @@ import { LikeModule } from '../like/like.module';
     MemberModule,
   ],
   providers: [ProductResolver, ProductService],
+  exports: [ProductService],
 })
 export class ProductModule {}
