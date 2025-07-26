@@ -6,7 +6,9 @@ import { MemberService } from '../member/member.service';
 import { ProductService } from '../product/product.service';
 import { BoardArticleService } from '../board-article/board-article.service';
 import { CommentInput } from '../../libs/dto/comment/comment.input';
-import { CommentGroup } from '../../libs/enums/comment.enum';
+import { CommentGroup, CommentStatus } from '../../libs/enums/comment.enum';
+import { CommentUpdate } from '../../libs/dto/comment/comment.update';
+import { Message } from '../../libs/enums/common.enum';
 
 @Injectable()
 export class CommentService {
@@ -57,9 +59,31 @@ export class CommentService {
         });
         break;
     }
-
+    if (!result) throw new InternalServerErrorException(Message.CREATE_FAILED);
     console.log('Comment result', result);
 
     return result;
+  }
+
+  public async updateComment(
+    memberId: ObjectId,
+    input: CommentUpdate,
+  ): Promise<Comment> {
+    const updatedComment = await this.commentModel
+      .findOneAndUpdate(
+        {
+          _id: input._id,
+          memberId: memberId,
+          commentStatus: CommentStatus.ACTIVE,
+        },
+        input,
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedComment)
+      throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+    return updatedComment;
   }
 }

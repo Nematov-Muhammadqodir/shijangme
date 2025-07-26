@@ -6,6 +6,8 @@ import { Comment } from '../../libs/dto/comment/comment';
 import { CommentInput } from '../../libs/dto/comment/comment.input';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
+import { CommentUpdate } from '../../libs/dto/comment/comment.update';
+import { shapeIntoMongoObjectId } from '../../libs/config';
 
 @Resolver()
 export class CommentResolver {
@@ -19,5 +21,17 @@ export class CommentResolver {
   ): Promise<Comment> {
     console.log('Mutation createComment');
     return await this.commentService.createComment(memberId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Comment)
+  public async updateComment(
+    @Args('input') input: CommentUpdate,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Comment> {
+    console.log('Mutation updateComment');
+    input._id = shapeIntoMongoObjectId(input._id);
+
+    return await this.commentService.updateComment(memberId, input);
   }
 }
