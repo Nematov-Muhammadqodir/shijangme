@@ -262,6 +262,34 @@ export class BoardArticleService {
     return result[0];
   }
 
+  public async updateBoardArticleByAdmin(
+    input: BoardArticleUpdate,
+  ): Promise<BoardArticle> {
+    const { _id, articleStatus } = input;
+
+    const result = await this.boardArticleModel
+      .findByIdAndUpdate(
+        {
+          _id: _id,
+          articleStatus: BoardArticleStatus.ACTIVE,
+        },
+        input,
+        { new: true },
+      )
+      .exec();
+
+    if (!result) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    if (articleStatus === BoardArticleStatus.DELETE) {
+      await this.boardArticleStatsEditor({
+        _id: result._id,
+        targetKey: 'memberArticles',
+        modifier: -1,
+      });
+    }
+    return result;
+  }
+
   public async boardArticleStatsEditor(
     input: StatisticModifier,
   ): Promise<BoardArticle> {
