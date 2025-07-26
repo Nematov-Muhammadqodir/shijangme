@@ -35,6 +35,8 @@ export const availableBoardArticleSorts = [
   'articleViews',
 ];
 
+export const availableCommentSorts = ['createdAt', 'updatedAt'];
+
 export const shapeIntoMongoObjectId = (target: any) => {
   console.log('target id', target);
   console.log('target id type', typeof target);
