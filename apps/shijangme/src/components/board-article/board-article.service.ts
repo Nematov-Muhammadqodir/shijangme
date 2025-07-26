@@ -290,6 +290,22 @@ export class BoardArticleService {
     return result;
   }
 
+  public async removeBoardArticleByAdmin(
+    articleId: ObjectId,
+  ): Promise<BoardArticle> {
+    const targetArticle = await this.boardArticleModel
+      .findOneAndDelete({
+        _id: articleId,
+        articleStatus: BoardArticleStatus.DELETE,
+      })
+      .exec();
+
+    if (!targetArticle)
+      throw new InternalServerErrorException(Message.REMOVE_FAILED);
+
+    return targetArticle;
+  }
+
   public async boardArticleStatsEditor(
     input: StatisticModifier,
   ): Promise<BoardArticle> {
