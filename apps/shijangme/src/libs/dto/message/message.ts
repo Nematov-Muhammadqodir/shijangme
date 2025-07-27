@@ -21,8 +21,3 @@ export class Message {
   @Field(() => Date)
   updatedAt: Date;
 }
-
-@ObjectType()
-export class Messages {
-  list: Message[];
-}

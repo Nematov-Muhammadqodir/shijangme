@@ -1,4 +1,4 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { MessageService } from './message.service';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -23,5 +23,17 @@ export class MessageResolver {
     input.senderId = memberId;
 
     return await this.messageService.createMessage(input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => [Message])
+  public async getMessages(
+    @Args('input') input: string,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Message[]> {
+    console.log('Query getMessages');
+    const userToChatId = shapeIntoMongoObjectId(input);
+
+    return await this.messageService.getMessages(memberId, userToChatId);
   }
 }

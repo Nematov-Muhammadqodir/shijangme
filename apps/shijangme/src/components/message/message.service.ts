@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Message, Messages } from '../../libs/dto/message/message';
+import { Model, ObjectId } from 'mongoose';
+import { Message } from '../../libs/dto/message/message';
 import { MessageInput } from '../../libs/dto/message/message.input';
 import { MemberService } from '../member/member.service';
 
@@ -24,5 +24,19 @@ export class MessageService {
       console.log('Error createMessage', err);
       throw new InternalServerErrorException('Sending new messaga failed!');
     }
+  }
+
+  public async getMessages(
+    requestMemberId: ObjectId,
+    userToChatId: ObjectId,
+  ): Promise<Message[]> {
+    const messages = await this.messageModel.find({
+      $or: [
+        { senderId: requestMemberId, receiverId: userToChatId },
+        { senderId: userToChatId, receiverId: requestMemberId },
+      ],
+    });
+
+    return messages;
   }
 }
