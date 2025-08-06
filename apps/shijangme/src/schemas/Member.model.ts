@@ -71,9 +71,6 @@ const MemberSchema = new Schema(
       type: Number,
       default: 0,
     },
-    vendorNumber: {
-      type: Number,
-    },
     memberLikes: {
       type: Number,
       default: 0,

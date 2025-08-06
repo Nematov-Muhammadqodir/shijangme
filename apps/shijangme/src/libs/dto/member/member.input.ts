@@ -29,10 +29,6 @@ export class MemberInput {
   memberType?: MemberType;
 
   @IsOptional()
-  @Field(() => Int, { nullable: true })
-  vendorNumber?: number;
-
-  @IsOptional()
   @Field(() => MemberAuthType, { nullable: true })
   memberAuthType?: MemberAuthType;
 }
@@ -55,9 +51,6 @@ class VISearch {
   @IsOptional()
   @Field(() => String, { nullable: true })
   text?: string;
-  @IsOptional()
-  @Field(() => Int, { nullable: true })
-  vendorNumber?: number;
 }
 
 @InputType()

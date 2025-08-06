@@ -26,6 +26,7 @@ export const availableProducts = [
   'productViews',
   'productRank',
   'productPrice',
+  'productDiscountRate',
 ];
 
 export const availableBoardArticleSorts = [

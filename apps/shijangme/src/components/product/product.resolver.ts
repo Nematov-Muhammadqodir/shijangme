@@ -58,6 +58,7 @@ export class ProductResolver {
     return await this.productService.updateProduct(productOwnerId, input);
   }
 
+  @UseGuards(WithoutGuard)
   @Query(() => Products)
   public async getProducts(
     @Args('input') input: ProductsInquiry,
@@ -107,13 +108,14 @@ export class ProductResolver {
   @Mutation(() => Product)
   public async likeTargetProduct(
     @Args('productId') input: string,
-    @AuthMember('_id') memeberId: ObjectId,
+    @AuthMember('_id') memberId: ObjectId,
   ): Promise<Product> {
     console.log('Mutation likeTargetProduct');
+    console.log('memberId likeTargetProduct', memberId);
 
     const productId = shapeIntoMongoObjectId(input);
 
-    return await this.productService.likeTargetProduct(memeberId, productId);
+    return await this.productService.likeTargetProduct(memberId, productId);
   }
 
   //& APIs for ADMINs

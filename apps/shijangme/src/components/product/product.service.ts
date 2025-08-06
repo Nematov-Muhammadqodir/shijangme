@@ -152,7 +152,7 @@ export class ProductService {
     memberId: ObjectId,
     input: ProductsInquiry,
   ): Promise<Products> {
-    console.log('getProducts input', input);
+    console.log('memberId', memberId);
     const match: T = { productStatus: ProductStatus.ACTIVE };
     const sort: T = {
       [input.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,

@@ -6,6 +6,7 @@ export const AuthMember = createParamDecorator(
 
     if (context.contextType === 'graphql') {
       request = context.getArgByIndex(2).req;
+      console.log('request.body.authMember', request.body);
       if (request.body.authMember) {
         request.body.authMember.authorization = request.headers?.authorization;
       }

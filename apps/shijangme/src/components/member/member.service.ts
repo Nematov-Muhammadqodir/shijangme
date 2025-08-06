@@ -43,13 +43,6 @@ export class MemberService {
     );
 
     try {
-      const vendorExists = await this.memberModel
-        .findOne({ vendorNumber: input.vendorNumber })
-        .exec();
-
-      if (vendorExists)
-        throw new InternalServerErrorException(Message.VENDOR_EXISTS);
-
       const result: Member = await this.memberModel.create(input);
       //TODO Auth with tokens
       result.accessToken = await this.authService.createToken(result);
