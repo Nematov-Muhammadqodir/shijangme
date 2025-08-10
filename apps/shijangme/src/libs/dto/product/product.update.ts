@@ -50,7 +50,7 @@ export class ProductUpdate {
   productDesc?: string;
 
   @IsOptional()
-  @Field(() => String, { nullable: true })
+  @Field(() => [String], { nullable: true })
   productImages?: string[];
 
   @IsOptional()
