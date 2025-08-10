@@ -36,18 +36,16 @@ export class ProductInput {
   };
 
   @IsOptional()
-  @Field(() => Number, { nullable: true })
-  productOrigin?: {
-    type: String;
-  };
+  @Field(() => String, { nullable: true })
+  productOrigin?: string;
 
   @IsNotEmpty()
   @Field(() => Number)
   productLeftCount: number;
 
   @IsOptional()
-  @Field(() => ProductVolume, { nullable: true })
-  productVolume?: ProductVolume;
+  @Field(() => Number, { nullable: true })
+  productVolume?: number;
 
   @IsOptional()
   @Field(() => [String], { nullable: true })
@@ -68,18 +66,18 @@ export class PISearch {
   productOwnerId?: ObjectId;
 
   @IsOptional()
-  @Field(() => String, { nullable: true })
-  productCollection?: ProductCollection;
+  @Field(() => [ProductCollection], { nullable: true })
+  productCollection?: ProductCollection[];
 
   @IsOptional()
-  @Field(() => ProductVolume, { nullable: true })
-  productVolume?: ProductVolume;
+  @Field(() => [ProductVolume], { nullable: true })
+  productVolume?: [ProductVolume];
 
   @Field(() => Int, { nullable: true })
   productDiscountRate?: number;
 
-  @Field(() => [String], { nullable: true })
-  productOrigin?: string;
+  @Field(() => [ProductFrom], { nullable: true })
+  productOrigin?: ProductFrom[];
 
   @IsOptional()
   @Field(() => [String], { nullable: true })
@@ -99,7 +97,7 @@ export class ProductsInquiry {
   limit: number;
 
   @IsOptional()
-  @IsIn(availableProducts)
+  // @IsIn(availableProducts)
   @Field(() => String, { nullable: true })
   sort?: string;
 

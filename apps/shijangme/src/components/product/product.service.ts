@@ -162,16 +162,16 @@ export class ProductService {
       match.productOwnerId = input.search.productOwnerId;
     }
     if (input.search.productCollection) {
-      match.productCollection = input.search.productCollection;
+      match.productCollection = { $in: input.search.productCollection };
     }
-    if (input.search.productVolume) {
-      match.productVolume = input.search.productVolume;
+    if (input.search.productVolume && input.search.productVolume.length) {
+      match.productVolume = { $in: input.search.productVolume };
     }
     if (input.search.text) {
       match.productName = { $regex: new RegExp(input.search.text, 'i') };
     }
     if (input.search.productOrigin) {
-      match.productOrigin = input.search.productOrigin;
+      match.productOrigin = { $in: input.search.productOrigin };
     }
     if (input.search.productDiscountRate) {
       match.productDiscountRate = input.search.productDiscountRate;
