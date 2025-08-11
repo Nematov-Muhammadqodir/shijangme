@@ -173,6 +173,12 @@ export class ProductService {
     if (input.search.productOrigin) {
       match.productOrigin = { $in: input.search.productOrigin };
     }
+    if (input.search.productPrice) {
+      match.productPrice = {
+        $gte: input.search.productPrice.start,
+        $lte: input.search.productPrice.end,
+      };
+    }
     if (input.search.productDiscountRate) {
       match.productDiscountRate = input.search.productDiscountRate;
     }

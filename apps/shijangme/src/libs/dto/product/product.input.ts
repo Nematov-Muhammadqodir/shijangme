@@ -60,6 +60,15 @@ export class ProductInput {
 }
 
 @InputType()
+export class PricesRange {
+  @Field(() => Int)
+  start: number;
+
+  @Field(() => Int)
+  end: number;
+}
+
+@InputType()
 export class PISearch {
   @IsOptional()
   @Field(() => String, { nullable: true })
@@ -70,14 +79,18 @@ export class PISearch {
   productCollection?: ProductCollection[];
 
   @IsOptional()
-  @Field(() => [ProductVolume], { nullable: true })
-  productVolume?: [ProductVolume];
+  @Field(() => [Number], { nullable: true })
+  productVolume?: number[];
 
   @Field(() => Int, { nullable: true })
   productDiscountRate?: number;
 
   @Field(() => [ProductFrom], { nullable: true })
   productOrigin?: ProductFrom[];
+
+  @IsOptional()
+  @Field(() => PricesRange, { nullable: true })
+  productPrice?: PricesRange;
 
   @IsOptional()
   @Field(() => [String], { nullable: true })
