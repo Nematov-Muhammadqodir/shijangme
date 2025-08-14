@@ -230,7 +230,7 @@ export class BoardArticleService {
   public async getAllBoardArticlesByAdmin(
     input: AllBoardArticlesInquiry,
   ): Promise<BoardArticles> {
-    const { articleStatus, articleCategory } = input.search;
+    const { articleStatus, articleCategory, text } = input.search;
 
     const match: T = {};
     const sort: T = {
@@ -239,6 +239,7 @@ export class BoardArticleService {
 
     if (articleStatus) match.articleStatus = articleStatus;
     if (articleCategory) match.articleCategory = articleCategory;
+    if (text) match.articleTitle = { $regex: new RegExp(text, 'i') };
 
     const result = await this.boardArticleModel.aggregate([
       { $match: match },

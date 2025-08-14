@@ -179,6 +179,14 @@ class ALPISearch {
   @IsOptional()
   @Field(() => [ProductFrom], { nullable: true })
   productFromList?: ProductFrom[];
+
+  @IsOptional()
+  @Field(() => ProductCollection, { nullable: true })
+  productCollection?: ProductCollection;
+
+  @IsOptional()
+  @Field(() => [String], { nullable: true })
+  text?: string;
 }
 
 @InputType()

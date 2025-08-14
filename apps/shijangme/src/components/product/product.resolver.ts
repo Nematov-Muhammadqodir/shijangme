@@ -140,6 +140,7 @@ export class ProductResolver {
     @AuthMember('_id') memberId: ObjectId,
   ): Promise<Product> {
     console.log('Mutation updateProductByAdmin');
+    console.log('updateProductByAdmin input', input);
     return await this.productService.updateProductByAdmin(input);
   }
 

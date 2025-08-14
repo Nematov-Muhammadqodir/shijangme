@@ -305,7 +305,8 @@ export class ProductService {
   public async getAllProductsByAdmin(
     input: AllProductsInquery,
   ): Promise<Products> {
-    const { productStatus, productFromList } = input.search;
+    const { productStatus, productFromList, productCollection, text } =
+      input.search;
 
     const match: T = {};
 
@@ -315,6 +316,8 @@ export class ProductService {
 
     if (productStatus) match.productStatus = productStatus;
     if (productFromList) match.productOrigin = { $in: productFromList };
+    if (productCollection) match.productCollection = productCollection;
+    if (text) match.productName = { $regex: new RegExp(text, 'i') };
 
     const result = await this.productModel.aggregate([
       { $match: match },
