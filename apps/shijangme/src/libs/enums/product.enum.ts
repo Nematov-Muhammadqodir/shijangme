@@ -8,6 +8,8 @@ export enum ProductCollection {
   HERBS = 'HERBS',
   NUTS = 'NUTS',
   GRAINS = 'GRAINS',
+  MEAT_EGGS = 'MEAT_EGGS',
+  MILK_BEVARAGES = 'MILK_BEVARAGES',
 }
 registerEnumType(ProductCollection, {
   name: 'ProductCollection',
@@ -24,7 +26,6 @@ registerEnumType(ProductStatus, {
 
 export enum ProductVolume {
   ZERO = 0,
-  HALF = 0.5,
   ONE = 1,
   TWO = 2,
   FOUR = 4,
