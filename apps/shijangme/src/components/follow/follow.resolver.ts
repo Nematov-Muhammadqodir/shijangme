@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { FollowService } from './follow.service';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth.guard';
-import { Follower, Followings } from '../../libs/dto/follow/follow';
+import { Follower, Followers, Followings } from '../../libs/dto/follow/follow';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
 import { shapeIntoMongoObjectId } from '../../libs/config';
@@ -51,12 +51,12 @@ export class FollowResolver {
   }
 
   @UseGuards(WithoutGuard)
-  @Query(() => Followings)
+  @Query(() => Followers)
   public async getMemberFollowers(
     @Args('input') input: FollowInquiry,
     @AuthMember('_id') memberId: ObjectId,
-  ): Promise<Followings> {
-    console.log('Query getMemberFollowings');
+  ): Promise<Followers> {
+    console.log('Query getMemberFollowers');
 
     input.search.followerId = shapeIntoMongoObjectId(input.search.followerId);
     input.search.followingId = shapeIntoMongoObjectId(input.search.followingId);
