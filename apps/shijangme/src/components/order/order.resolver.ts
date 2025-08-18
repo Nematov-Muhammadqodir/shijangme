@@ -15,6 +15,7 @@ import { shapeIntoMongoObjectId } from '../../libs/config';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
+import { Message } from '../../libs/enums/common.enum';
 console.log('Is OrderItemInput defined?', OrderItemInput);
 @Resolver()
 export class OrderResolver {
@@ -28,6 +29,7 @@ export class OrderResolver {
     @AuthMember('_id') memberId: ObjectId,
   ): Promise<Order> {
     console.log('Mutation createOrder');
+    if (input.ordertItemInputs.length < 1) throw new Error(Message.BAD_REQUEST);
     return await this.orderService.createOrder(memberId, input);
   }
 
