@@ -51,8 +51,8 @@ export class Order {
   @Field(() => Int)
   orderTotal: number;
 
-  @Field(() => Int)
-  orderDelivery: number;
+  @Field(() => Int, { nullable: true })
+  orderDelivery?: number;
 
   @Field(() => OrderStatus)
   orderStatus: OrderStatus;

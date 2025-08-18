@@ -12,6 +12,9 @@ import { ObjectId } from 'mongoose';
 import { OrderService } from './order.service';
 import { OrderUpdateInput } from '../../libs/dto/order/order.update';
 import { shapeIntoMongoObjectId } from '../../libs/config';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { MemberType } from '../../libs/enums/member.enum';
 console.log('Is OrderItemInput defined?', OrderItemInput);
 @Resolver()
 export class OrderResolver {
@@ -37,6 +40,31 @@ export class OrderResolver {
     console.log('Query getMyOrders');
 
     return await this.orderService.getMyOrders(memberId, input);
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(RolesGuard)
+  @Query(() => Orders)
+  public async getAllOrdersByAdmin(
+    @Args('input') input: OrderInquery,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Orders> {
+    console.log('Query getAllOrdersByAdmin');
+    const result = await this.orderService.getAllOrdersByAdmin(input);
+    console.log('getAllOrdersByAdminaaa resolver', result);
+    return result;
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(RolesGuard)
+  @Mutation(() => Order)
+  public async updateOrderByAdmin(
+    @Args('input') input: OrderUpdateInput,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Order> {
+    console.log('Mutation updateOrderByAdmin');
+    input.orderId = shapeIntoMongoObjectId(input.orderId);
+    return await this.orderService.updateOrderByAdmin(memberId, input);
   }
 
   @UseGuards(AuthGuard)

@@ -37,7 +37,7 @@ export class OrderService {
       0,
     );
 
-    const delivery = amount < 1000000 ? 5000 : 0;
+    const delivery = 0;
 
     try {
       const orderInput = {
@@ -102,6 +102,71 @@ export class OrderService {
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
     return result[0];
+  }
+
+  public async getAllOrdersByAdmin(inquery: OrderInquery): Promise<Orders> {
+    const { page, limit } = inquery;
+    const { orderStatus } = inquery.search;
+    const match: T = {};
+
+    if (orderStatus) match.orderStatus = orderStatus;
+
+    const result = await this.orderModel
+      .aggregate([
+        { $match: match },
+        { $sort: { updatedAt: -1 } },
+        {
+          $facet: {
+            list: [
+              { $skip: (page - 1) * limit },
+              { $limit: limit },
+              lookupOrderItems(),
+            ],
+            metaCounter: [{ $count: 'total' }],
+          },
+        },
+      ])
+      .exec();
+    console.log('getAllOrdersByAdminaaa', result[0]);
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0];
+  }
+
+  public async updateOrderByAdmin(
+    memberId: ObjectId,
+    input: OrderUpdateInput,
+  ): Promise<Order> {
+    const isProcessed = await this.orderModel
+      .findOne({
+        _id: input.orderId,
+        orderStatus: OrderStatus.PROCESS,
+      })
+      .exec();
+    const result = await this.orderModel
+      .findOneAndUpdate(
+        {
+          _id: input.orderId,
+        },
+        { orderStatus: input.orderStatus },
+        { new: true },
+      )
+      .exec();
+
+    if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+    if (!isProcessed) {
+      if (input.orderStatus === OrderStatus.PROCESS)
+        this.memberService.memberStatsEditor({
+          _id: memberId,
+          targetKey: 'memberPoints',
+          modifier: 1,
+        });
+    }
+
+    return result;
   }
 
   public async updateOrder(
