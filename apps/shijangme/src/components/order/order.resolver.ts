@@ -1,7 +1,7 @@
 import { forwardRef, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthGuard } from '../auth/guards/auth.guard';
-import { Order, Orders } from '../../libs/dto/order/order';
+import { Order, OrderItem, Orders } from '../../libs/dto/order/order';
 import {
   OrderInquery,
   OrderItemInput,
@@ -55,6 +55,18 @@ export class OrderResolver {
     const result = await this.orderService.getAllOrdersByAdmin(input);
     console.log('getAllOrdersByAdminaaa resolver', result);
     return result;
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(RolesGuard)
+  @Query(() => [OrderItem])
+  public async getAllOrderItemsByAdmin(
+    @Args('input') input: string,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<OrderItem[]> {
+    console.log('Query getAllOrderItemsByAdmin');
+    const orderId = shapeIntoMongoObjectId(input);
+    return await this.orderService.getAllOrderItemsByAdmin(orderId);
   }
 
   @Roles(MemberType.ADMIN)

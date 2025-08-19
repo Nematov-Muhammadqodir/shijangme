@@ -135,6 +135,19 @@ export class OrderService {
     return result[0];
   }
 
+  public async getAllOrderItemsByAdmin(
+    orderId: ObjectId,
+  ): Promise<OrderItem[]> {
+    console.log('Service getAllOrderItemsByAdmin');
+    const search: T = {
+      _id: orderId,
+    };
+
+    const result = await this.orderItemModel.find({ orderId: orderId });
+    console.log('result Service', result);
+    return result;
+  }
+
   public async updateOrderByAdmin(
     memberId: ObjectId,
     input: OrderUpdateInput,
