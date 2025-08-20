@@ -10,8 +10,9 @@ import { BoardArticleModule } from './board-article/board-article.module';
 import { MessageModule } from './message/message.module';
 import { NotificationModule } from './notification/notification.module';
 import { OrderModule } from './order/order.module';
+import { NoticeModule } from './notice/notice.module';
 
 @Module({
-  imports: [MemberModule, AuthModule, CommentModule, FollowModule, LikeModule, ProductModule, ViewModule, BoardArticleModule, MessageModule, NotificationModule, OrderModule]
+  imports: [MemberModule, AuthModule, CommentModule, FollowModule, LikeModule, ProductModule, ViewModule, BoardArticleModule, MessageModule, NotificationModule, OrderModule, NoticeModule]
 })
 export class ComponentsModule {}

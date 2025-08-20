@@ -4,7 +4,7 @@ import { NoticeCategory, NoticeStatus } from '../../enums/notice.enum';
 import { ObjectId } from 'mongoose';
 
 @InputType()
-export class MemberInput {
+export class NoticeInput {
   @IsNotEmpty()
   @Field(() => NoticeCategory)
   noticeCategory: NoticeCategory;
