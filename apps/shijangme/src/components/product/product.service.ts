@@ -27,11 +27,13 @@ import { ProductUpdate } from '../../libs/dto/product/product.update';
 import * as moment from 'moment';
 import { skip } from 'node:test';
 import { lookupAuthMemberLiked, lookupMember } from '../../libs/config';
+import { Member } from '../../libs/dto/member/member';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel('Product') private readonly productModel: Model<Product>,
+    @InjectModel('Member') private readonly memberModel: Model<Member>,
     private memberService: MemberService,
     private viewService: ViewService,
     private likeService: LikeService,
@@ -47,6 +49,9 @@ export class ProductService {
         targetKey: 'memberProducts',
         modifier: 1,
       });
+
+      // Increment newProductNumber for ALL users
+      await this.memberModel.updateMany({}, { $inc: { newProductAmount: 1 } });
 
       return result;
     } catch (error) {

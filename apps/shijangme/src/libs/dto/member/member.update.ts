@@ -1,4 +1,4 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, Length } from 'class-validator';
 import {
   MemberAuthType,
@@ -34,6 +34,10 @@ export class MemberUpdate {
   @IsOptional()
   @Field(() => String, { nullable: true })
   memberPassword?: string;
+
+  @IsOptional()
+  @Field(() => Int, { nullable: true })
+  newProductAmount?: number;
 
   @IsOptional()
   @Length(3, 100)

@@ -64,7 +64,7 @@ export class MemberResolver {
     @Args('input') input: MemberUpdate,
     @AuthMember('_id') memberId: ObjectId,
   ) {
-    console.log('Mutation updateMember');
+    console.log('Mutation updateMember', input);
     delete input._id;
 
     return await this.memberService.updateMember(memberId, input);

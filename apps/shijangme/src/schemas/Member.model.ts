@@ -55,6 +55,10 @@ const MemberSchema = new Schema(
       type: Number,
       default: 0,
     },
+    newProductAmount: {
+      type: Number,
+      default: 0,
+    },
     memberArticles: {
       type: Number,
       default: 0,
