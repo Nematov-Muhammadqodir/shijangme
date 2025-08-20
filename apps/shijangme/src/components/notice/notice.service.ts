@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Notice } from '../../libs/dto/notice/notice';
 import { NoticeInput } from '../../libs/dto/notice/notice.input';
 import { Message } from '../../libs/enums/common.enum';
+import { NoticeUpdate } from '../../libs/dto/notice/notice.update';
 
 @Injectable()
 export class NoticeService {
@@ -25,5 +30,22 @@ export class NoticeService {
       console.log('Error createNotice', error);
       throw new BadRequestException(Message.CREATE_FAILED);
     }
+  }
+
+  public async updateNotice(
+    memberId: ObjectId,
+    input: NoticeUpdate,
+  ): Promise<Notice> {
+    const result = await this.noticeModel.findOneAndUpdate(
+      {
+        _id: input._id,
+      },
+      input,
+      { new: true },
+    );
+
+    if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+    return result;
   }
 }
