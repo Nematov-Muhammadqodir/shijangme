@@ -1,6 +1,10 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 import { ObjectId } from 'mongoose';
-import { NoticeCategory, NoticeStatus } from '../../enums/notice.enum';
+import {
+  NoticeCategory,
+  NoticeFor,
+  NoticeStatus,
+} from '../../enums/notice.enum';
 import { TotalCounter } from '../member/member';
 
 @ObjectType()
@@ -13,6 +17,9 @@ export class Notice {
 
   @Field(() => NoticeStatus)
   noticeStatus: NoticeStatus;
+
+  @Field(() => NoticeFor)
+  noticeFor: NoticeFor;
 
   @Field(() => String)
   noticeTitle: string;
