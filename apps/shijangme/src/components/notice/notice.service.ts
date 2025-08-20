@@ -6,7 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
 import { Notice } from '../../libs/dto/notice/notice';
-import { NoticeInput } from '../../libs/dto/notice/notice.input';
+import { NoticeInput, NoticeInquery } from '../../libs/dto/notice/notice.input';
 import { Message } from '../../libs/enums/common.enum';
 import { NoticeUpdate } from '../../libs/dto/notice/notice.update';
 import { NoticeStatus } from '../../libs/enums/notice.enum';
@@ -50,8 +50,11 @@ export class NoticeService {
     return result;
   }
 
-  public async getNotices(): Promise<Notice[]> {
-    return await this.noticeModel.find({ noticeStatus: NoticeStatus.ACTIVE });
+  public async getNotices(input: NoticeInquery): Promise<Notice[]> {
+    return await this.noticeModel.find({
+      noticeStatus: NoticeStatus.ACTIVE,
+      noticeFor: input.noticeFor,
+    });
   }
 
   public async getAllNoticesByAdmin(): Promise<Notice[]> {

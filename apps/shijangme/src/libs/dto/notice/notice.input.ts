@@ -33,3 +33,10 @@ export class NoticeInput {
 
   memberId?: ObjectId;
 }
+
+@InputType()
+export class NoticeInquery {
+  @IsNotEmpty()
+  @Field(() => NoticeFor)
+  noticeFor: NoticeFor;
+}

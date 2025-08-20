@@ -5,7 +5,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Notice, Notices } from '../../libs/dto/notice/notice';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
-import { NoticeInput } from '../../libs/dto/notice/notice.input';
+import { NoticeInput, NoticeInquery } from '../../libs/dto/notice/notice.input';
 import { ObjectId } from 'mongoose';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { NoticeUpdate } from '../../libs/dto/notice/notice.update';
@@ -41,9 +41,12 @@ export class NoticeResolver {
 
   @UseGuards(WithoutGuard)
   @Query(() => [Notice])
-  public async getNotices(): Promise<Notice[]> {
+  public async getNotices(
+    @Args('input') input: NoticeInquery,
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Notice[]> {
     console.log('Query getNotices');
-    return await this.noticeService.getNotices();
+    return await this.noticeService.getNotices(input);
   }
 
   @Roles(MemberType.ADMIN)
