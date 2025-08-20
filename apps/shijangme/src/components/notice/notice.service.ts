@@ -9,6 +9,7 @@ import { Notice } from '../../libs/dto/notice/notice';
 import { NoticeInput } from '../../libs/dto/notice/notice.input';
 import { Message } from '../../libs/enums/common.enum';
 import { NoticeUpdate } from '../../libs/dto/notice/notice.update';
+import { NoticeStatus } from '../../libs/enums/notice.enum';
 
 @Injectable()
 export class NoticeService {
@@ -47,5 +48,13 @@ export class NoticeService {
     if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 
     return result;
+  }
+
+  public async getNotices(): Promise<Notice[]> {
+    return await this.noticeModel.find({ noticeStatus: NoticeStatus.ACTIVE });
+  }
+
+  public async getAllNoticesByAdmin(): Promise<Notice[]> {
+    return await this.noticeModel.find();
   }
 }
