@@ -73,7 +73,6 @@ export class ViewService {
 
     const result: Products = { list: [], metaCounter: data[0].metaCounter };
     result.list = data[0].list.map((ele) => ele.visitedProduct);
-    console.log('result view', result.list);
 
     return result;
   }

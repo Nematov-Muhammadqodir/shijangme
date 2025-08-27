@@ -65,7 +65,6 @@ export class CommentService {
         break;
     }
     if (!result) throw new InternalServerErrorException(Message.CREATE_FAILED);
-    console.log('Comment result', result);
 
     return result;
   }
@@ -123,14 +122,11 @@ export class CommentService {
     if (!result.length)
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
-    console.log('getComments result', result[0]);
-
     return result[0];
   }
 
   //&ADMIN
   public async removeCommentByAdmin(commentId: ObjectId): Promise<Comment> {
-    console.log('commentId', commentId);
     const result = await this.commentModel.findByIdAndDelete(commentId);
     if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
     return result;

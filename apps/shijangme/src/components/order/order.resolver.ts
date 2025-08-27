@@ -16,7 +16,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { Message } from '../../libs/enums/common.enum';
-console.log('Is OrderItemInput defined?', OrderItemInput);
+
 @Resolver()
 export class OrderResolver {
   constructor(private readonly orderService: OrderService) {}
@@ -53,7 +53,6 @@ export class OrderResolver {
   ): Promise<Orders> {
     console.log('Query getAllOrdersByAdmin');
     const result = await this.orderService.getAllOrdersByAdmin(input);
-    console.log('getAllOrdersByAdminaaa resolver', result);
     return result;
   }
 

@@ -96,7 +96,6 @@ export class OrderService {
         },
       ])
       .exec();
-    console.log('myOrders', result);
 
     if (!result.length)
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);

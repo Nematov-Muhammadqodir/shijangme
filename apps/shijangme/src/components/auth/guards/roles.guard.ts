@@ -29,14 +29,13 @@ export class RolesGuard implements CanActivate {
 
       const token = bearerToken.split(' ')[1];
       const authMember = await this.authService.verifyToken(token);
-      console.log('authMemberType', authMember.memberType);
+
       const hasRole = () => roles.indexOf(authMember.memberType) > -1,
         hasPermission: boolean = hasRole();
 
       if (!authMember || !hasPermission)
         throw new ForbiddenException(Message.ONLY_SPECIFIC_ROLES_ALLOWED);
 
-      console.log('memberNick[roles] =>', authMember.memberNick);
       request.body.authMember = authMember;
       return true;
     }

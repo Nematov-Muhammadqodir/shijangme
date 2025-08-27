@@ -41,7 +41,6 @@ export class ProductService {
 
   public async createProduct(input: ProductInput): Promise<Product> {
     try {
-      console.log('productInput', input);
       const result = await this.productModel.create(input);
 
       await this.memberService.memberStatsEditor({
@@ -73,11 +72,9 @@ export class ProductService {
       .findOne(search)
       .lean()
       .exec();
-    console.log('targetProduct', targetProduct);
 
     if (!targetProduct)
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
-    console.log('memberId', memberId);
 
     if (memberId) {
       const viewInput: ViewInput = {
@@ -105,12 +102,11 @@ export class ProductService {
       targetProduct.meLiked =
         await this.likeService.checkLikeExistance(likeInput);
     }
-    console.log(' targetProduct.productOwnerData before', targetProduct);
+
     targetProduct.productOwnerData = await this.memberService.getMember(
       null,
       targetProduct.productOwnerId,
     );
-    console.log(' targetProduct.productOwnerData after', targetProduct);
 
     return targetProduct;
   }
@@ -157,7 +153,6 @@ export class ProductService {
     memberId: ObjectId,
     input: ProductsInquiry,
   ): Promise<Products> {
-    console.log('memberId', memberId);
     const match: T = { productStatus: ProductStatus.ACTIVE };
     const sort: T = {
       [input.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
@@ -222,7 +217,7 @@ export class ProductService {
     input: OrdinaryInquery,
   ): Promise<Products> {
     const result = await this.viewService.getVisitedProducts(memberId, input);
-    console.log('getVisited esult', result);
+
     return result;
   }
 
@@ -271,7 +266,6 @@ export class ProductService {
     if (!result.length)
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
-    console.log('RESULT[0]', result[0]);
     return result[0];
   }
 

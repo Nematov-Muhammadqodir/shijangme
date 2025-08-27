@@ -54,7 +54,7 @@ export class MemberResolver {
   @Query(() => String)
   public async checkAuthRoles(@AuthMember() member: Member) {
     console.log('Query checkAuthRoles');
-    console.log('RESULT checkAuthRoles', member);
+
     return `Hello ${member.memberNick}, you are ${member.memberType}:(${member._id})`;
   }
 
@@ -64,7 +64,6 @@ export class MemberResolver {
     @Args('input') input: MemberUpdate,
     @AuthMember('_id') memberId: ObjectId,
   ) {
-    console.log('Mutation updateMember', input);
     delete input._id;
 
     return await this.memberService.updateMember(memberId, input);
