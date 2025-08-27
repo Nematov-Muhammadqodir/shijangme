@@ -4,7 +4,7 @@ services:
     restart: always
     image: node:20.10.0
     ports:
-      - 3003:4007
+      - 4007:3003
     volumes:
       - ./:/usr/src/shijangme
     working_dir: /usr/src/shijangme
