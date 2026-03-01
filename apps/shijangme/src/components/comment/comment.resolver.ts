@@ -53,6 +53,7 @@ export class CommentResolver {
     input.search.commentRefId = shapeIntoMongoObjectId(
       input.search.commentRefId,
     );
+    console.log('getComments', input.search.commentRefId);
 
     return await this.commentService.getComments(memberId, input);
   }

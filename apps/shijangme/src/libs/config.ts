@@ -38,8 +38,19 @@ export const availableBoardArticleSorts = [
 
 export const availableCommentSorts = ['createdAt', 'updatedAt'];
 
+import { Types } from 'mongoose';
+
 export const shapeIntoMongoObjectId = (target: any) => {
-  return typeof target === 'string' ? new ObjectId(target) : target;
+  if (!target) return target;
+
+  if (typeof target === 'string') {
+    if (Types.ObjectId.isValid(target)) {
+      return new Types.ObjectId(target);
+    }
+    throw new Error(`Invalid ObjectId: ${target}`);
+  }
+
+  return target;
 };
 
 export const lookupAuthMemberLiked = (
