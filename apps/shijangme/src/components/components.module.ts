@@ -7,12 +7,30 @@ import { LikeModule } from './like/like.module';
 import { ProductModule } from './product/product.module';
 import { ViewModule } from './view/view.module';
 import { BoardArticleModule } from './board-article/board-article.module';
-import { MessageModule } from './message/message.module';
+
 import { NotificationModule } from './notification/notification.module';
 import { OrderModule } from './order/order.module';
 import { NoticeModule } from './notice/notice.module';
+import { StripeService } from './stripe/stripe.service';
+import { StripeResolver } from './stripe/stripe.resolver';
+
+import { ChatModule } from './chat/chat.module';
 
 @Module({
-  imports: [MemberModule, AuthModule, CommentModule, FollowModule, LikeModule, ProductModule, ViewModule, BoardArticleModule, MessageModule, NotificationModule, OrderModule, NoticeModule]
+  imports: [
+    MemberModule,
+    AuthModule,
+    CommentModule,
+    FollowModule,
+    LikeModule,
+    ProductModule,
+    ViewModule,
+    BoardArticleModule,
+    NotificationModule,
+    OrderModule,
+    NoticeModule,
+    ChatModule,
+  ],
+  providers: [StripeService, StripeResolver],
 })
 export class ComponentsModule {}

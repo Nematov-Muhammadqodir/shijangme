@@ -36,7 +36,7 @@ export class NoticeInput {
 
 @InputType()
 export class NoticeInquery {
-  @IsNotEmpty()
-  @Field(() => NoticeFor)
-  noticeFor: NoticeFor;
+  @IsOptional()
+  @Field(() => NoticeFor, { nullable: true })
+  noticeFor?: NoticeFor;
 }

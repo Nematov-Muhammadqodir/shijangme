@@ -144,6 +144,18 @@ export class MemberService {
     return targetMember;
   }
 
+  public async getAllUsers(): Promise<Member[]> {
+    console.log('Service: getAllUsers');
+
+    const result = await this.memberModel
+      .find({
+        memberType: MemberType.USER,
+      })
+      .exec();
+
+    return result;
+  }
+
   private async checkSubscription(
     followerId: ObjectId,
     followingId: ObjectId,

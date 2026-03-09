@@ -51,10 +51,15 @@ export class NoticeService {
   }
 
   public async getNotices(input: NoticeInquery): Promise<Notice[]> {
-    return await this.noticeModel.find({
+    const query: any = {
       noticeStatus: NoticeStatus.ACTIVE,
-      noticeFor: input.noticeFor,
-    });
+    };
+
+    if (input.noticeFor) {
+      query.noticeFor = input.noticeFor;
+    }
+
+    return await this.noticeModel.find(query);
   }
 
   public async getAllNoticesByAdmin(): Promise<Notice[]> {

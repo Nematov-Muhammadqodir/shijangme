@@ -64,7 +64,7 @@ export class ProductResolver {
     @Args('input') input: ProductsInquiry,
     @AuthMember('_id') memberId: ObjectId,
   ): Promise<Products> {
-    console.log('Query getProducts');
+    console.log('Query getProducts', input);
     if (input?.search?.productOwnerId)
       input.search.productOwnerId = shapeIntoMongoObjectId(
         input?.search?.productOwnerId,

@@ -1,23 +1,16 @@
-import { Schema } from 'mongoose';
+import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { ObjectId } from 'mongoose';
 
-const MessageSchema = new Schema(
-  {
-    senderId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Member',
-      required: true,
-    },
-    receiverId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Member',
-      required: true,
-    },
-    text: {
-      type: String,
-      required: true,
-    },
-  },
-  { timestamps: true, collection: 'messages' },
-);
+@Schema({ timestamps: true })
+export class Message {
+  @Prop({ required: true })
+  chatRoomId: ObjectId;
 
-export default MessageSchema;
+  @Prop({ required: true })
+  senderId: ObjectId;
+
+  @Prop({ required: true })
+  text: string;
+}
+
+export const MessageSchema = SchemaFactory.createForClass(Message);
