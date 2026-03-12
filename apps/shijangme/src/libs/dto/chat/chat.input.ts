@@ -11,6 +11,9 @@ export class SendMessageInput {
 
 @InputType()
 export class CreateChatRoomInput {
+  constructor() {
+    console.log('Hereeeee');
+  }
   @Field()
   targetUserId: string;
 }

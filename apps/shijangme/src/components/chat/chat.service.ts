@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ObjectId } from 'mongoose';
 import { Message } from '../../libs/dto/message/message';
 import { SendMessageInput } from '../../libs/dto/chat/chat.input';
 import { ChatRoomType, MessageType } from '../../libs/dto/chat/chat';
+import { ChatRoom } from '../../schemas/ChatRoom..model';
 
 @Injectable()
 export class ChatService {
@@ -11,7 +12,7 @@ export class ChatService {
     @InjectModel('Message')
     private messageModel: Model<MessageType>,
     @InjectModel('ChatRoom')
-    private chatRoomModel: Model<ChatRoomType>,
+    private chatRoomModel: Model<ChatRoom>,
   ) {}
 
   async createMessage(senderId: string, input: SendMessageInput) {
@@ -30,7 +31,7 @@ export class ChatService {
       .sort({ createdAt: 1 });
   }
 
-  async getOrCreateRoom(userA: string, userB: string) {
+  async getOrCreateRoom(userA: ObjectId, userB: string) {
     let room = await this.chatRoomModel.findOne({
       participants: { $all: [userA, userB] },
     });
@@ -39,6 +40,21 @@ export class ChatService {
       room = await this.chatRoomModel.create({
         participants: [userA, userB],
       });
+    }
+
+    await room.populate('participants');
+    return room;
+  }
+
+  async getChatRoom(roomId: ObjectId) {
+    const room = await this.chatRoomModel
+      .findById(roomId)
+      .populate('participants');
+
+    console.log('room', room);
+
+    if (!room) {
+      throw new Error('Chat room not found');
     }
 
     return room;

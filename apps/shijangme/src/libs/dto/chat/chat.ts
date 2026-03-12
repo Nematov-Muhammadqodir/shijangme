@@ -1,4 +1,5 @@
 import { Field, ObjectType, ID } from '@nestjs/graphql';
+import { Member } from '../member/member';
 
 @ObjectType()
 export class MessageType {
@@ -20,11 +21,14 @@ export class MessageType {
 
 @ObjectType()
 export class ChatRoomType {
+  constructor() {
+    console.log('Byeee');
+  }
   @Field(() => ID)
   _id: string;
 
-  @Field(() => [String])
-  participants: string[];
+  @Field(() => [Member])
+  participants: Member[];
 
   @Field({ nullable: true })
   lastMessage?: string;
