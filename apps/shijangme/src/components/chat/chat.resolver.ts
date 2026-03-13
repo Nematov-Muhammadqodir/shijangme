@@ -8,7 +8,6 @@ import { ChatRoomType, MessageType } from '../../libs/dto/chat/chat';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { ObjectId } from 'mongoose';
 import { UseGuards } from '@nestjs/common';
-import { WithoutGuard } from '../auth/guards/without.guard';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { shapeIntoMongoObjectId } from '../../libs/config';
 
@@ -35,7 +34,6 @@ export class ChatResolver {
     @Args('input') input: CreateChatRoomInput,
     @AuthMember('_id') memberId: ObjectId,
   ) {
-    console.log('memberId', memberId);
     input.targetUserId = shapeIntoMongoObjectId(input.targetUserId);
     return this.chatService.getOrCreateRoom(memberId, input.targetUserId);
   }
@@ -43,7 +41,6 @@ export class ChatResolver {
   @UseGuards(AuthGuard)
   @Query(() => ChatRoomType)
   async getChatRoom(@Args('roomId', { type: () => String }) roomId: string) {
-    console.log('roomObjectId', roomId);
     const roomObjectId = shapeIntoMongoObjectId(roomId);
     return this.chatService.getChatRoom(roomObjectId);
   }

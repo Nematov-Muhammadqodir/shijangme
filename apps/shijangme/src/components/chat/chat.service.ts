@@ -51,8 +51,6 @@ export class ChatService {
       .findById(roomId)
       .populate('participants');
 
-    console.log('room', room);
-
     if (!room) {
       throw new Error('Chat room not found');
     }
