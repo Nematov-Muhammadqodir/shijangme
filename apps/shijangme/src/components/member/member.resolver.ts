@@ -90,10 +90,12 @@ export class MemberResolver {
 
   @UseGuards(WithoutGuard)
   @Query(() => [Member])
-  public async getAllUsers(): Promise<Member[]> {
+  public async getAllUsers(
+    @AuthMember('_id') memberId: ObjectId,
+  ): Promise<Member[]> {
     console.log('Query getAllUsers');
 
-    return await this.memberService.getAllUsers();
+    return await this.memberService.getAllUsers(memberId);
   }
 
   @UseGuards(WithoutGuard)

@@ -144,16 +144,33 @@ export class MemberService {
     return targetMember;
   }
 
-  public async getAllUsers(): Promise<Member[]> {
-    console.log('Service: getAllUsers');
+  public async getAllUsers(memberId: ObjectId): Promise<Member[]> {
+    const users = await this.memberModel.aggregate([
+      {
+        $match: { memberType: MemberType.USER },
+      },
+      {
+        $lookup: {
+          from: 'follows',
+          let: { targetId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$followingId', '$$targetId'] },
+                    { $eq: ['$followerId', memberId] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'meFollowed',
+        },
+      },
+    ]);
 
-    const result = await this.memberModel
-      .find({
-        memberType: MemberType.USER,
-      })
-      .exec();
-
-    return result;
+    return users;
   }
 
   private async checkSubscription(

@@ -5,88 +5,88 @@ import { MeLiked } from '../like/like';
 
 @ObjectType()
 export class MeFollowed {
-	@Field(() => String)
-	followingId: ObjectId;
+  @Field(() => String, { nullable: true })
+  followingId?: ObjectId;
 
-	@Field(() => String)
-	followerId: ObjectId;
+  @Field(() => String, { nullable: true })
+  followerId?: ObjectId;
 
-	@Field(() => Boolean)
-	myFollowing: boolean;
+  @Field(() => Boolean, { nullable: true })
+  myFollowing?: boolean;
 }
 
 @ObjectType()
 export class Follower {
-	@Field(() => String)
-	_id: ObjectId;
+  @Field(() => String)
+  _id: ObjectId;
 
-	@Field(() => String)
-	followingId: ObjectId;
+  @Field(() => String)
+  followingId: ObjectId;
 
-	@Field(() => String)
-	followerId: ObjectId;
+  @Field(() => String)
+  followerId: ObjectId;
 
-	@Field(() => Date)
-	createdAt: Date;
+  @Field(() => Date)
+  createdAt: Date;
 
-	@Field(() => Date)
-	updatedAt: Date;
+  @Field(() => Date)
+  updatedAt: Date;
 
-	/** from aggregation **/
+  /** from aggregation **/
 
-	@Field(() => [MeLiked], { nullable: true })
-	meLiked?: MeLiked[];
+  @Field(() => [MeLiked], { nullable: true })
+  meLiked?: MeLiked[];
 
-	@Field(() => [MeFollowed], { nullable: true })
-	meFollowed?: MeFollowed[];
+  @Field(() => [MeFollowed], { nullable: true })
+  meFollowed?: MeFollowed[];
 
-	@Field(() => Member, { nullable: true })
-	followerData?: Member;
+  @Field(() => Member, { nullable: true })
+  followerData?: Member;
 }
 
 @ObjectType()
 export class Following {
-	@Field(() => String)
-	_id: ObjectId;
+  @Field(() => String)
+  _id: ObjectId;
 
-	@Field(() => String)
-	followingId: ObjectId;
+  @Field(() => String)
+  followingId: ObjectId;
 
-	@Field(() => String)
-	followerId: ObjectId;
+  @Field(() => String)
+  followerId: ObjectId;
 
-	@Field(() => Date)
-	createdAt: Date;
+  @Field(() => Date)
+  createdAt: Date;
 
-	@Field(() => Date)
-	updatedAt: Date;
+  @Field(() => Date)
+  updatedAt: Date;
 
-	/** from aggregation **/
+  /** from aggregation **/
 
-	@Field(() => [MeLiked], { nullable: true })
-	meLiked?: MeLiked[];
+  @Field(() => [MeLiked], { nullable: true })
+  meLiked?: MeLiked[];
 
-	@Field(() => [MeFollowed], { nullable: true })
-	meFollowed?: MeFollowed[];
+  @Field(() => [MeFollowed], { nullable: true })
+  meFollowed?: MeFollowed[];
 
-	@Field(() => Member, { nullable: true })
-	followingData?: Member;
+  @Field(() => Member, { nullable: true })
+  followingData?: Member;
 }
 
 @ObjectType()
 export class Followings {
-	@Field(() => [Following])
-	list: Following[];
+  @Field(() => [Following])
+  list: Following[];
 
-	@Field(() => [TotalCounter], { nullable: true })
-	metaCounter: TotalCounter[];
+  @Field(() => [TotalCounter], { nullable: true })
+  metaCounter: TotalCounter[];
 }
 
 @ObjectType()
 export class Followers {
-	@Field(() => [Follower])
-	list: Follower[];
+  @Field(() => [Follower])
+  list: Follower[];
 
-	@Field(() => [TotalCounter], { nullable: true })
-	metaCounter: TotalCounter[];
+  @Field(() => [TotalCounter], { nullable: true })
+  metaCounter: TotalCounter[];
 }
