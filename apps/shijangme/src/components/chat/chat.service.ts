@@ -20,6 +20,8 @@ export class ChatService {
       senderId,
       chatRoomId: input.chatRoomId,
       text: input.text,
+      imageUrl: input.imageUrl,
+      type: input.type,
     });
 
     return message;

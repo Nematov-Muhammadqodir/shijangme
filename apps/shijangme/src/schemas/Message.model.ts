@@ -9,8 +9,14 @@ export class Message {
   @Prop({ required: true })
   senderId: ObjectId;
 
-  @Prop({ required: true })
-  text: string;
+  @Prop({ required: false })
+  text?: string;
+
+  @Prop({ required: false })
+  imageUrl?: string;
+
+  @Prop({ default: 'text' })
+  type: 'text' | 'image';
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

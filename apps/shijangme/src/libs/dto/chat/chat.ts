@@ -12,8 +12,14 @@ export class MessageType {
   @Field()
   senderId: string;
 
+  @Field({ nullable: true })
+  text?: string;
+
+  @Field({ nullable: true })
+  imageUrl?: string;
+
   @Field()
-  text: string;
+  type: string;
 
   @Field()
   createdAt: Date;

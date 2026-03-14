@@ -66,16 +66,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: {
       chatRoomId: string;
       senderId: string;
-      text: string;
+      text?: string;
+      imageUrl?: string;
+      type: 'text' | 'image';
     },
   ) {
-    // 1 save message in DB
-    const message = await this.chatService.createMessage(payload.senderId, {
-      chatRoomId: payload.chatRoomId,
-      text: payload.text,
-    });
+    const message = await this.chatService.createMessage(
+      payload.senderId,
+      payload,
+    );
 
-    // 2 broadcast message to room
     this.server.to(payload.chatRoomId).emit('newMessage', message);
 
     return message;
