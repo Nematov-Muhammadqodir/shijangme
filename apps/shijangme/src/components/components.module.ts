@@ -15,6 +15,7 @@ import { StripeService } from './stripe/stripe.service';
 import { StripeResolver } from './stripe/stripe.resolver';
 
 import { ChatModule } from './chat/chat.module';
+import { AiAgentModule } from './ai-agent/ai-agent.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ChatModule } from './chat/chat.module';
     OrderModule,
     NoticeModule,
     ChatModule,
+    AiAgentModule,
   ],
   providers: [StripeService, StripeResolver],
 })
