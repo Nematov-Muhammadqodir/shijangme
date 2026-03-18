@@ -141,6 +141,10 @@ export class VPISearch {
   @IsOptional()
   @Field(() => ProductStatus, { nullable: true })
   productStatus?: ProductStatus;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  text?: string;
 }
 
 @InputType()

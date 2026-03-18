@@ -236,12 +236,16 @@ export class ProductService {
     memberId: ObjectId,
     input: VendorProductsInquery,
   ): Promise<Products> {
-    const { productStatus } = input.search;
+    const { productStatus, text } = input.search;
 
     const match: T = {
       productOwnerId: memberId,
       productStatus: productStatus ?? { $ne: ProductStatus.DELETE },
     };
+
+    if (text) {
+      match.productName = { $regex: new RegExp(text, 'i') };
+    }
 
     const sort: T = {
       [input.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
