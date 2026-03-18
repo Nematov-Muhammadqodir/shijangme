@@ -18,6 +18,9 @@ import { ChatModule } from './chat/chat.module';
 import { AiAgentModule } from './ai-agent/ai-agent.module';
 import { FridgeModule } from './fridge/fridge.module';
 import { BillModule } from './bill/bill.module';
+import { PurchaseModule } from './purchase/purchase.module';
+import { PresetProductModule } from './preset-product/preset-product.module';
+import { LoanModule } from './loan/loan.module';
 
 @Module({
   imports: [
@@ -36,6 +39,9 @@ import { BillModule } from './bill/bill.module';
     AiAgentModule,
     FridgeModule,
     BillModule,
+    PurchaseModule,
+    PresetProductModule,
+    LoanModule,
   ],
   providers: [StripeService, StripeResolver],
 })

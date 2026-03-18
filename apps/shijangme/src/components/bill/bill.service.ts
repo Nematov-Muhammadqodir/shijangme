@@ -9,17 +9,45 @@ import { Bill, Bills } from '../../libs/dto/bill/bill';
 import { BillInput, BillsInquiry } from '../../libs/dto/bill/bill.input';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { BillStatus } from '../../libs/enums/bill.enum';
+import { FridgeItem } from '../../libs/dto/fridge/fridge';
+import { FridgeItemStatus } from '../../libs/enums/fridge.enum';
 import { T } from '../../libs/types/common';
 
 @Injectable()
 export class BillService {
   constructor(
     @InjectModel('Bill') private readonly billModel: Model<Bill>,
+    @InjectModel('FridgeItem')
+    private readonly fridgeItemModel: Model<FridgeItem>,
   ) {}
 
   public async createBill(input: BillInput): Promise<Bill> {
     try {
-      return await this.billModel.create(input);
+      // 1. Create the bill
+      const bill = await this.billModel.create(input);
+
+      // 2. Decrease fridge stock for each sold item
+      for (const item of input.items) {
+        const fridgeItem = await this.fridgeItemModel.findOneAndUpdate(
+          {
+            memberId: input.memberId,
+            productName: {
+              $regex: new RegExp(`^${item.productName}$`, 'i'),
+            },
+          },
+          { $inc: { currentStock: -item.quantity } },
+          { new: true },
+        );
+
+        // Auto-set FINISHED if stock hits 0 or below
+        if (fridgeItem && fridgeItem.currentStock <= 0) {
+          fridgeItem.currentStock = 0;
+          fridgeItem.itemStatus = FridgeItemStatus.FINISHED;
+          await fridgeItem.save();
+        }
+      }
+
+      return bill;
     } catch (error) {
       console.log('Error createBill:', error.message);
       throw new BadRequestException(Message.CREATE_FAILED);

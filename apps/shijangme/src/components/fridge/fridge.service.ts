@@ -162,6 +162,50 @@ export class FridgeService {
     return result[0];
   }
 
+  /** View another vendor's ACTIVE fridge items (read-only for other vendors) */
+  public async getVendorFridge(
+    vendorId: ObjectId,
+    input: FridgeItemsInquiry,
+  ): Promise<FridgeItems> {
+    const { productCollection, text } = input.search;
+
+    const match: T = {
+      memberId: vendorId,
+      itemStatus: FridgeItemStatus.ACTIVE,
+    };
+
+    if (productCollection) {
+      match.productCollection = productCollection;
+    }
+
+    if (text) {
+      match.productName = { $regex: new RegExp(text, 'i') };
+    }
+
+    const sort: T = {
+      [input.sort ?? 'productName']: input?.direction ?? Direction.DESC,
+    };
+
+    const result = await this.fridgeItemModel.aggregate([
+      { $match: match },
+      { $sort: sort },
+      {
+        $facet: {
+          list: [
+            { $skip: (input.page - 1) * input.limit },
+            { $limit: input.limit },
+          ],
+          metaCounter: [{ $count: 'total' }],
+        },
+      },
+    ]);
+
+    if (!result.length)
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    return result[0];
+  }
+
   /** Delete fridge item (soft delete) */
   public async deleteFridgeItem(
     memberId: ObjectId,

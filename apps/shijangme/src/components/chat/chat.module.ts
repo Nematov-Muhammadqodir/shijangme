@@ -16,5 +16,6 @@ import { AuthModule } from '../auth/auth.module';
     AuthModule,
   ],
   providers: [ChatResolver, ChatService, ChatGateway],
+  exports: [ChatGateway],
 })
 export class ChatModule {}

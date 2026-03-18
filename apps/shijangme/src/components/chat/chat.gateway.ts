@@ -91,4 +91,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Send current online users to just this client
     client.emit('onlineUsers', Array.from(this.onlineUsers.keys()));
   }
+
+  /** Send a targeted notification to a specific user (if online) */
+  public sendNotification(
+    targetUserId: string,
+    event: string,
+    payload: any,
+  ) {
+    const socketId = this.onlineUsers.get(targetUserId);
+    if (socketId) {
+      this.server.to(socketId).emit(event, payload);
+      console.log(`Notification sent to ${targetUserId}: ${event}`);
+    }
+  }
 }

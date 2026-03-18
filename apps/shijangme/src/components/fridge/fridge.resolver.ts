@@ -69,6 +69,19 @@ export class FridgeResolver {
     return await this.fridgeService.getFridgeItems(memberId, input);
   }
 
+  /** View another vendor's ACTIVE fridge items */
+  @Roles(MemberType.VENDOR)
+  @UseGuards(RolesGuard)
+  @Query(() => FridgeItems)
+  public async getVendorFridge(
+    @Args('vendorId') vendorId: string,
+    @Args('input') input: FridgeItemsInquiry,
+  ): Promise<FridgeItems> {
+    console.log('Query: getVendorFridge');
+    const targetId = shapeIntoMongoObjectId(vendorId);
+    return await this.fridgeService.getVendorFridge(targetId, input);
+  }
+
   /** Soft-delete a fridge item */
   @Roles(MemberType.VENDOR)
   @UseGuards(RolesGuard)
