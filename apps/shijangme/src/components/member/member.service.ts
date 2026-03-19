@@ -147,7 +147,9 @@ export class MemberService {
   public async getAllUsers(memberId: ObjectId): Promise<Member[]> {
     const users = await this.memberModel.aggregate([
       {
-        $match: { memberType: MemberType.USER },
+        $match: {
+          memberStatus: MemberStatus.ACTIVE,
+        },
       },
       {
         $lookup: {

@@ -118,74 +118,119 @@ export class LoanService {
 
     const totalPrice = (request.unitPrice ?? 0) * request.quantity;
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const productNameRegex = new RegExp(`^${request.productName}$`, 'i');
 
-    // 2. Find or create today's loan — atomic upsert
-    const loan = await this.loanModel.findOneAndUpdate(
-      {
-        lenderId: vendorId,
-        borrowerId: request.requesterId,
-        loanDate: today,
-      },
-      {
-        $push: {
-          items: {
-            productName: request.productName,
-            quantity: request.quantity,
-            unit: request.unit,
-            unitPrice: request.unitPrice,
-            totalPrice,
-            approvedAt: new Date(),
-          },
-        },
-        $inc: { totalAmount: totalPrice },
-        $setOnInsert: {
-          lenderId: vendorId,
-          borrowerId: request.requesterId,
-          loanDate: today,
-          status: LoanStatus.OPEN,
-        },
-      },
-      { upsert: true, new: true },
-    );
-
-    // 3. Decrement lender's fridge stock (with safety check)
+    // === STEP 1: Decrement lender (B) stock — MUST succeed first ===
     const decremented = await this.fridgeItemModel.findOneAndUpdate(
       {
         memberId: vendorId,
-        productName: { $regex: new RegExp(`^${request.productName}$`, 'i') },
+        productName: { $regex: productNameRegex },
         currentStock: { $gte: request.quantity },
       },
       { $inc: { currentStock: -request.quantity } },
       { new: true },
     );
 
-    if (decremented && decremented.currentStock <= 0) {
+    if (!decremented) {
+      throw new BadRequestException(
+        'Insufficient stock. Cannot approve this request.',
+      );
+    }
+
+    // Auto-set FINISHED if stock hits 0
+    if (decremented.currentStock <= 0) {
       decremented.currentStock = 0;
       decremented.itemStatus = FridgeItemStatus.FINISHED;
       await decremented.save();
     }
 
-    // 4. Increment borrower's fridge stock (upsert)
-    await this.fridgeItemModel.findOneAndUpdate(
-      {
-        memberId: request.requesterId,
-        productName: { $regex: new RegExp(`^${request.productName}$`, 'i') },
-      },
-      {
-        $inc: { currentStock: request.quantity },
-        $set: {
-          itemStatus: FridgeItemStatus.ACTIVE,
-          unit: request.unit,
-        },
-        $setOnInsert: {
+    // === STEP 2: Increment borrower (A) stock — with rollback on failure ===
+    try {
+      await this.fridgeItemModel.findOneAndUpdate(
+        {
           memberId: request.requesterId,
-          productName: request.productName,
+          productName: { $regex: productNameRegex },
         },
-      },
-      { upsert: true, new: true },
-    );
+        {
+          $inc: { currentStock: request.quantity },
+          $set: {
+            itemStatus: FridgeItemStatus.ACTIVE,
+            unit: request.unit,
+          },
+          $setOnInsert: {
+            memberId: request.requesterId,
+            productName: request.productName,
+            productCollection: decremented.productCollection ?? '',
+          },
+        },
+        { upsert: true, new: true },
+      );
+    } catch (error) {
+      // ROLLBACK Step 1 — give stock back to lender
+      await this.fridgeItemModel.findOneAndUpdate(
+        { memberId: vendorId, productName: { $regex: productNameRegex } },
+        {
+          $inc: { currentStock: request.quantity },
+          $set: { itemStatus: FridgeItemStatus.ACTIVE },
+        },
+      );
+      throw new InternalServerErrorException(
+        'Failed to update borrower stock. Lender stock restored.',
+      );
+    }
 
-    // 5. Update request status
+    // === STEP 3: Find or create today's loan — append item ===
+    let loan;
+    try {
+      loan = await this.loanModel.findOneAndUpdate(
+        {
+          lenderId: vendorId,
+          borrowerId: request.requesterId,
+          loanDate: today,
+        },
+        {
+          $push: {
+            items: {
+              productName: request.productName,
+              quantity: request.quantity,
+              unit: request.unit,
+              unitPrice: request.unitPrice,
+              totalPrice,
+              approvedAt: new Date(),
+            },
+          },
+          $inc: { totalAmount: totalPrice },
+          $setOnInsert: {
+            lenderId: vendorId,
+            borrowerId: request.requesterId,
+            loanDate: today,
+            status: LoanStatus.OPEN,
+          },
+        },
+        { upsert: true, new: true },
+      );
+    } catch (error) {
+      // ROLLBACK Steps 1 & 2 — reverse both stock changes
+      await this.fridgeItemModel.findOneAndUpdate(
+        { memberId: vendorId, productName: { $regex: productNameRegex } },
+        {
+          $inc: { currentStock: request.quantity },
+          $set: { itemStatus: FridgeItemStatus.ACTIVE },
+        },
+      );
+      await this.fridgeItemModel.findOneAndUpdate(
+        {
+          memberId: request.requesterId,
+          productName: { $regex: productNameRegex },
+        },
+        { $inc: { currentStock: -request.quantity } },
+      );
+      throw new InternalServerErrorException(
+        'Failed to create loan. All stock changes rolled back.',
+      );
+    }
+
+    // === STEP 4: Update request status ===
     request.status = BorrowRequestStatus.APPROVED;
     request.loanId = loan._id;
     await request.save();
