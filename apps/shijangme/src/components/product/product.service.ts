@@ -25,15 +25,16 @@ import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeGroup } from '../../libs/enums/like.enum';
 import { ProductUpdate } from '../../libs/dto/product/product.update';
 import * as moment from 'moment';
-import { skip } from 'node:test';
 import { lookupAuthMemberLiked, lookupMember } from '../../libs/config';
 import { Member } from '../../libs/dto/member/member';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectModel('Product') private readonly productModel: Model<Product>,
     @InjectModel('Member') private readonly memberModel: Model<Member>,
+    private redisService: RedisService,
     private memberService: MemberService,
     private viewService: ViewService,
     private likeService: LikeService,
@@ -63,19 +64,30 @@ export class ProductService {
     memberId: ObjectId,
     productId: ObjectId,
   ): Promise<Product> {
-    const search: T = {
-      _id: productId,
-      productStatus: ProductStatus.ACTIVE,
-    };
+    const cacheKey = `product:${productId}`;
 
-    const targetProduct: Product = await this.productModel
-      .findOne(search)
-      .lean()
-      .exec();
+    // 1. Try cache for base product data
+    let targetProduct = await this.redisService.getJson<Product>(cacheKey);
 
-    if (!targetProduct)
-      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+    if (targetProduct) {
+      console.log(`Cache HIT: ${cacheKey}`);
+    } else {
+      console.log(`Cache MISS: ${cacheKey}`);
+      const search: T = {
+        _id: productId,
+        productStatus: ProductStatus.ACTIVE,
+      };
 
+      targetProduct = await this.productModel.findOne(search).lean().exec();
+
+      if (!targetProduct)
+        throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+      // Cache base product data for 1 hour
+      await this.redisService.setJson(cacheKey, targetProduct, 3600);
+    }
+
+    // 2. Per-user enrichment (never cached — unique per user)
     if (memberId) {
       const viewInput: ViewInput = {
         memberId: memberId,
@@ -130,6 +142,10 @@ export class ProductService {
     });
 
     if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+
+    // Invalidate cache
+
+    await this.redisService.del(`product:${result._id}`);
 
     if (soldAt || deletedAt) {
       await this.memberService.memberStatsEditor({
@@ -225,11 +241,16 @@ export class ProductService {
     console.log('Service: productStatsEditor');
     const { _id, targetKey, modifier } = input;
 
-    return await this.productModel.findByIdAndUpdate(
+    const result = await this.productModel.findByIdAndUpdate(
       { _id: _id },
       { $inc: { [targetKey]: modifier } },
       { new: true },
     );
+
+    // Invalidate cache since stats changed
+    await this.redisService.del(`product:${_id}`);
+
+    return result;
   }
 
   public async getVendorProducts(
@@ -352,8 +373,8 @@ export class ProductService {
       productStatus: ProductStatus.ACTIVE,
     };
 
-    if ((productStatus = ProductStatus.SOLD)) soldAt = moment().toDate();
-    if ((productStatus = ProductStatus.DELETE)) deletedAt = moment().toDate();
+    if (productStatus === ProductStatus.SOLD) soldAt = moment().toDate();
+    if (productStatus === ProductStatus.DELETE) deletedAt = moment().toDate();
 
     const result = await this.productModel
       .findOneAndUpdate(search, input, {
@@ -362,6 +383,9 @@ export class ProductService {
       .exec();
 
     if (!result) throw new InternalServerErrorException(Message.UPLOAD_FAILED);
+
+    // Invalidate cache
+    await this.redisService.del(`product:${result._id}`);
 
     if (soldAt || deletedAt) {
       await this.memberService.memberStatsEditor({
@@ -379,6 +403,9 @@ export class ProductService {
 
     const result = await this.productModel.findOneAndDelete(search).exec();
     if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
+
+    // Invalidate cache
+    await this.redisService.del(`product:${productId}`);
 
     return result;
   }

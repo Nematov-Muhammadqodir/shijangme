@@ -8,10 +8,12 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver } from '@nestjs/apollo';
 import { T } from './libs/types/common';
+import { RedisModule } from './components/redis/redis.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
+    RedisModule,
     GraphQLModule.forRoot({
       driver: ApolloDriver,
       playground: process.env.NODE_ENV !== 'production',
