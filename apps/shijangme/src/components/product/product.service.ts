@@ -43,6 +43,9 @@ export class ProductService {
   public async createProduct(input: ProductInput): Promise<Product> {
     try {
       const result = await this.productModel.create(input);
+      if (result) {
+        await this.redisService.delPattern('products:*');
+      }
 
       await this.memberService.memberStatsEditor({
         _id: result.productOwnerId,
@@ -169,6 +172,20 @@ export class ProductService {
     memberId: ObjectId,
     input: ProductsInquiry,
   ): Promise<Products> {
+    // Build a cache key from the query parameters (only for non-logged-in users)
+    const cacheKey = memberId ? null : `products:${JSON.stringify(input)}`;
+
+    // 1. Try cache (only for public/guest browsing)
+    if (cacheKey) {
+      const cached = await this.redisService.getJson<Products>(cacheKey);
+      if (cached) {
+        console.log(`Cache HIT: ${cacheKey}`);
+        return cached;
+      }
+      console.log(`Cache MISS: ${cacheKey}`);
+    }
+
+    // 2. Query MongoDB
     const match: T = { productStatus: ProductStatus.ACTIVE };
     const sort: T = {
       [input.sort ?? 'createdAt']: input?.direction ?? Direction.DESC,
@@ -217,6 +234,11 @@ export class ProductService {
     ]);
     if (!result.length)
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    // 3. Cache the result for guest users (short TTL since lists change often)
+    if (cacheKey) {
+      await this.redisService.setJson(cacheKey, result[0], 300);
+    }
 
     return result[0] as Products;
   }
