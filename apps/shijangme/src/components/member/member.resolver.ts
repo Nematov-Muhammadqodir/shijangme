@@ -28,7 +28,9 @@ import { createWriteStream } from 'fs';
 
 @Resolver()
 export class MemberResolver {
-  constructor(private readonly memberService: MemberService) {}
+  constructor(private readonly memberService: MemberService) {
+    console.log('I am resolber');
+  }
 
   @Mutation(() => Member)
   public async signup(@Args('input') input: MemberInput): Promise<Member> {

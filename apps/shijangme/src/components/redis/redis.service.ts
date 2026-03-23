@@ -38,21 +38,35 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   // Store a value (optionally with TTL in seconds)
   async set(key: string, value: string, ttl?: number): Promise<void> {
-    if (ttl) {
-      await this.client.setex(key, ttl, value);
-    } else {
-      await this.client.set(key, value);
+    try {
+      if (ttl) {
+        await this.client.setex(key, ttl, value);
+      } else {
+        await this.client.set(key, value);
+      }
+    } catch (err) {
+      this.logger.warn(`Redis set failed for key "${key}"`, err);
     }
   }
 
   // Get a value
   async get(key: string): Promise<string | null> {
-    return this.client.get(key);
+    try {
+      return this.client.get(key);
+    } catch (err) {
+      this.logger.warn(`Redis get failed for key "${key}"`, err);
+      return null;
+    }
   }
 
   // Delete a key
   async del(key: string): Promise<void> {
-    await this.client.del(key);
+    try {
+      await this.client.del(key);
+    } catch (err) {
+      this.logger.warn(`Redis delete failed for key "${key}"`, err);
+      return null;
+    }
   }
 
   // Check if key exists
@@ -65,14 +79,24 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   // Store an object as JSON
   async setJson<T>(key: string, value: T, ttl?: number): Promise<void> {
-    await this.set(key, JSON.stringify(value), ttl);
+    try {
+      await this.set(key, JSON.stringify(value), ttl);
+    } catch (err) {
+      this.logger.warn(`Redis set failed for key "${key}"`, err);
+      return null;
+    }
   }
 
   // Get and parse JSON
   async getJson<T>(key: string): Promise<T | null> {
-    const raw = await this.get(key);
-    if (!raw) return null;
-    return JSON.parse(raw) as T;
+    try {
+      const raw = await this.get(key);
+      if (!raw) return null;
+      return JSON.parse(raw) as T;
+    } catch (err) {
+      this.logger.warn(`Redis read failed for key "${key}"`, err);
+      return null;
+    }
   }
 
   // ====== COUNTER OPERATIONS ======
