@@ -95,11 +95,11 @@ export class ProductService {
       // Cache base product data for 1 hour
       await this.redisService.setJson(cacheKey, targetProduct, 3600);
 
-      // Seed the stats hash with current values from DB
+      // Seed the stats hash with current values from DB (same TTL as product cache)
       await this.redisService.hset(`${cacheKey}:stats`, {
         productViews: targetProduct.productViews,
         productLikes: targetProduct.productLikes,
-      });
+      }, 3600);
     }
 
     // 2. Per-user enrichment (never cached — unique per user)

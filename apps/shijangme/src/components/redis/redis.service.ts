@@ -107,10 +107,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   // ====== HASH OPERATIONS ======
 
-  // Set multiple fields in a hash
-  async hset(key: string, data: Record<string, string | number>): Promise<void> {
+  // Set multiple fields in a hash (optionally with TTL)
+  async hset(key: string, data: Record<string, string | number>, ttl?: number): Promise<void> {
     try {
       await this.client.hset(key, data);
+      if (ttl) {
+        await this.client.expire(key, ttl);
+      }
     } catch (err) {
       this.logger.warn(`Redis hset failed for "${key}"`, err);
     }
