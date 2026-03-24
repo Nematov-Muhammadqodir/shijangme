@@ -105,6 +105,37 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client.incr(key);
   }
 
+  // ====== HASH OPERATIONS ======
+
+  // Set multiple fields in a hash
+  async hset(key: string, data: Record<string, string | number>): Promise<void> {
+    try {
+      await this.client.hset(key, data);
+    } catch (err) {
+      this.logger.warn(`Redis hset failed for "${key}"`, err);
+    }
+  }
+
+  // Increment a field in a hash by a number
+  async hincrby(key: string, field: string, value: number): Promise<number> {
+    try {
+      return await this.client.hincrby(key, field, value);
+    } catch (err) {
+      this.logger.warn(`Redis hincrby failed for "${key}.${field}"`, err);
+      return null;
+    }
+  }
+
+  // Get a single field from a hash
+  async hget(key: string, field: string): Promise<string | null> {
+    try {
+      return await this.client.hget(key, field);
+    } catch (err) {
+      this.logger.warn(`Redis hget failed for "${key}.${field}"`, err);
+      return null;
+    }
+  }
+
   // ====== PATTERN OPERATIONS ======
 
   // Delete all keys matching a pattern (e.g. "product:*")

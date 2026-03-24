@@ -74,6 +74,12 @@ export class ProductService {
 
     if (targetProduct) {
       console.log(`Cache HIT: ${cacheKey}`);
+
+      // Merge latest stats from hash (they may be newer than the cached string)
+      const latestViews = await this.redisService.hget(`${cacheKey}:stats`, 'productViews');
+      const latestLikes = await this.redisService.hget(`${cacheKey}:stats`, 'productLikes');
+      if (latestViews) targetProduct.productViews = Number(latestViews);
+      if (latestLikes) targetProduct.productLikes = Number(latestLikes);
     } else {
       console.log(`Cache MISS: ${cacheKey}`);
       const search: T = {
@@ -88,6 +94,12 @@ export class ProductService {
 
       // Cache base product data for 1 hour
       await this.redisService.setJson(cacheKey, targetProduct, 3600);
+
+      // Seed the stats hash with current values from DB
+      await this.redisService.hset(`${cacheKey}:stats`, {
+        productViews: targetProduct.productViews,
+        productLikes: targetProduct.productLikes,
+      });
     }
 
     // 2. Per-user enrichment (never cached — unique per user)
@@ -269,8 +281,8 @@ export class ProductService {
       { new: true },
     );
 
-    // Invalidate cache since stats changed
-    await this.redisService.del(`product:${_id}`);
+    // Update the stat directly in cache (no need to delete and re-fetch)
+    await this.redisService.hincrby(`product:${_id}:stats`, targetKey, modifier);
 
     return result;
   }
