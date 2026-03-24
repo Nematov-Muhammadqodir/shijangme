@@ -18,6 +18,8 @@ import { WithoutGuard } from '../auth/guards/without.guard';
 import { shapeIntoMongoObjectId } from '../../libs/config';
 import { ProductUpdate } from '../../libs/dto/product/product.update';
 import { AuthGuard } from '../auth/guards/auth.guard';
+import { RateLimit } from '../auth/decorators/rateLimit.decorator';
+import { RateLimitGuard } from '../auth/guards/rateLimit.guard';
 
 @Resolver()
 export class ProductResolver {
@@ -34,7 +36,8 @@ export class ProductResolver {
     return await this.productService.createProduct(input);
   }
 
-  @UseGuards(WithoutGuard)
+  @RateLimit(20, 60)
+  @UseGuards(RateLimitGuard, WithoutGuard)
   @Query((returns) => Product)
   public async getProduct(
     @Args('productId') input: string,
@@ -104,6 +107,7 @@ export class ProductResolver {
     return await this.productService.getVendorProducts(vendorId, input);
   }
 
+  @RateLimit(10, 60)
   @UseGuards(AuthGuard)
   @Mutation(() => Product)
   public async likeTargetProduct(

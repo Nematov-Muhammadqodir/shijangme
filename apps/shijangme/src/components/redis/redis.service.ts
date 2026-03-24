@@ -5,6 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import Redis from 'ioredis';
+
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: Redis;
@@ -105,10 +106,30 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client.incr(key);
   }
 
+  // ====== RATE LIMITING ======
+
+  // Returns the current count after incrementing. Sets TTL only on first request.
+  async checkRateLimit(key: string, ttl: number): Promise<number> {
+    try {
+      const count = await this.client.incr(key);
+      if (count === 1) {
+        await this.client.expire(key, ttl);
+      }
+      return count;
+    } catch (err) {
+      this.logger.warn(`Redis rate limit check failed for "${key}"`, err);
+      return 0; // allow request if Redis is down
+    }
+  }
+
   // ====== HASH OPERATIONS ======
 
   // Set multiple fields in a hash (optionally with TTL)
-  async hset(key: string, data: Record<string, string | number>, ttl?: number): Promise<void> {
+  async hset(
+    key: string,
+    data: Record<string, string | number>,
+    ttl?: number,
+  ): Promise<void> {
     try {
       await this.client.hset(key, data);
       if (ttl) {
@@ -147,7 +168,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       let cursor = '0';
       do {
         const [nextCursor, keys] = await this.client.scan(
-          cursor, 'MATCH', pattern, 'COUNT', 100,
+          cursor,
+          'MATCH',
+          pattern,
+          'COUNT',
+          100,
         );
         cursor = nextCursor;
         if (keys.length > 0) {
