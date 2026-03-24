@@ -9,11 +9,12 @@ import Redis from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: Redis;
+  private subscriber: Redis;
   private logger = new Logger('RedisService');
 
   // Called automatically when NestJS starts
   onModuleInit() {
-    this.client = new Redis({
+    const redisConfig = {
       host: process.env.REDIS_HOST || 'localhost',
       port: Number(process.env.REDIS_PORT) || 6379,
       password: process.env.REDIS_PASSWORD || undefined,
@@ -24,15 +25,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         if (times > 10) return null;
         return Math.min(times * 200, 5000);
       },
-    });
+    };
 
+    // Main client for GET, SET, DEL, etc.
+    this.client = new Redis(redisConfig);
     this.client.on('connect', () => this.logger.log('Connected to Redis'));
     this.client.on('error', (err) => this.logger.error('Redis error', err));
+
+    // Separate client for subscribing (a subscribed client can't do normal commands)
+    this.subscriber = new Redis(redisConfig);
+    this.subscriber.on('connect', () => this.logger.log('Redis subscriber connected'));
+    this.subscriber.on('error', (err) => this.logger.error('Redis subscriber error', err));
   }
 
   // Called automatically when NestJS shuts down
   async onModuleDestroy() {
     await this.client.quit();
+    await this.subscriber.quit();
   }
 
   // ====== BASIC OPERATIONS ======
@@ -181,6 +190,32 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       } while (cursor !== '0');
     } catch (err) {
       this.logger.warn(`Redis delPattern failed for "${pattern}"`, err);
+    }
+  }
+
+  // ====== PUB/SUB ======
+
+  // Publish a message to a channel
+  async publish(channel: string, data: any): Promise<void> {
+    try {
+      await this.client.publish(channel, JSON.stringify(data));
+    } catch (err) {
+      this.logger.warn(`Redis publish failed on "${channel}"`, err);
+    }
+  }
+
+  // Subscribe to a channel and handle incoming messages
+  async subscribe(channel: string, callback: (data: any) => void): Promise<void> {
+    try {
+      await this.subscriber.subscribe(channel);
+      this.subscriber.on('message', (ch, message) => {
+        if (ch === channel) {
+          callback(JSON.parse(message));
+        }
+      });
+      this.logger.log(`Subscribed to channel: ${channel}`);
+    } catch (err) {
+      this.logger.warn(`Redis subscribe failed on "${channel}"`, err);
     }
   }
 

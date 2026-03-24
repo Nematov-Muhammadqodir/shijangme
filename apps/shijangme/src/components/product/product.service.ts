@@ -162,6 +162,16 @@ export class ProductService {
 
     await this.redisService.del(`product:${result._id}`);
 
+    // Publish event when a product is sold
+    if (productStatus === ProductStatus.SOLD) {
+      await this.redisService.publish('product-events', {
+        event: 'PRODUCT_SOLD',
+        productId: result._id,
+        productName: result.productName,
+        sellerId: productOwnerId,
+      });
+    }
+
     if (soldAt || deletedAt) {
       await this.memberService.memberStatsEditor({
         _id: productOwnerId,
