@@ -78,6 +78,46 @@ export class NotificationService implements OnModuleInit {
         this.logger.log(
           `Notification sent to user ${data.followingId}: ${data.followerName} is new follower`,
         );
+      } else if (data.event === NotificationType.UNSUBSCRIBED) {
+        // 1. Save notification to database
+        const notification = await this.createNotification({
+          notificationType: NotificationType.UNSUBSCRIBED,
+          notificationMessage: `${data.unFollowerName} unsubscribed from you`,
+          receiverId: data.unFollowingId,
+        });
+
+        // 2. Send real-time notification to seller's browser via Socket.io
+        this.chatGateway.sendNotification(
+          data.unFollowingId,
+          'notification',
+          notification,
+        );
+
+        this.logger.log(
+          `Notification sent to user ${data.unFollowingId}: ${data.unFollowerName} unsubscribed`,
+        );
+      }
+    });
+
+    await this.redisService.subscribe('chat-events', async (data) => {
+      if (data.event === NotificationType.SEND_MESSAGE) {
+        // 1. Save notification to database
+        const notification = await this.createNotification({
+          notificationType: NotificationType.SEND_MESSAGE,
+          notificationMessage: `${data.senderName} sent a new message`,
+          receiverId: data.receiverId,
+        });
+
+        // 2. Send real-time notification to seller's browser via Socket.io
+        this.chatGateway.sendNotification(
+          data.receiverId,
+          'notification',
+          notification,
+        );
+
+        this.logger.log(
+          `Notification sent to chat room ${data.receiverId}: ${data.senderName} sent new message`,
+        );
       }
     });
   }

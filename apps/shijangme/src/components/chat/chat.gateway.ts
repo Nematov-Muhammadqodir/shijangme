@@ -7,6 +7,10 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
+import { RedisService } from '../redis/redis.service';
+import { MemberService } from '../member/member.service';
+import { shapeIntoMongoObjectId } from '../../libs/config';
+import { NotificationType } from '../../libs/enums/notification.enum';
 
 @WebSocketGateway({
   cors: {
@@ -18,7 +22,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
   private onlineUsers = new Map<string, string>();
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private redisService: RedisService,
+    private readonly memberService: MemberService,
+  ) {}
 
   handleConnection(client: Socket) {
     const userId = client.handshake.auth.userId;
@@ -71,10 +79,28 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       type: 'text' | 'image';
     },
   ) {
+    const follower = await this.memberService.getMember(
+      null,
+      shapeIntoMongoObjectId(payload.senderId),
+    );
+
+    const participants = await this.chatService.getChatRoom(
+      shapeIntoMongoObjectId(payload.chatRoomId),
+    );
     const message = await this.chatService.createMessage(
       payload.senderId,
       payload,
     );
+
+    if (message) {
+      await this.redisService.publish('chat-events', {
+        event: NotificationType.SEND_MESSAGE,
+        receiverId: participants.participants.filter(
+          (participant) => String(participant) !== payload.senderId,
+        )[0],
+        senderName: follower.memberNick,
+      });
+    }
 
     this.server.to(payload.chatRoomId).emit('newMessage', message);
 
@@ -93,11 +119,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /** Send a targeted notification to a specific user (if online) */
-  public sendNotification(
-    targetUserId: string,
-    event: string,
-    payload: any,
-  ) {
+  public sendNotification(targetUserId: string, event: string, payload: any) {
     const socketId = this.onlineUsers.get(targetUserId);
     if (socketId) {
       this.server.to(socketId).emit(event, payload);

@@ -87,7 +87,7 @@ export class FollowService {
     followingId: ObjectId,
   ): Promise<Follower> {
     const targetMember = await this.memberService.getMember(null, followingId);
-
+    const follower = await this.memberService.getMember(null, followerId);
     if (!targetMember)
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
@@ -95,6 +95,14 @@ export class FollowService {
       followerId: followerId,
       followingId: followingId,
     });
+
+    if (result) {
+      await this.redisService.publish('follow-events', {
+        event: 'UNSUBSCRIBED',
+        unFollowingId: result.followingId,
+        unFollowerName: follower.memberNick,
+      });
+    }
 
     if (!result) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 

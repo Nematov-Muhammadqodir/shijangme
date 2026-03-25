@@ -6,6 +6,8 @@ export enum NotificationType {
   NEW_FOLLOWER = 'NEW_FOLLOWER',
   PRODUCT_DELETED = 'PRODUCT_DELETED',
   SUBSCRIBED = 'SUBSCRIBED',
+  UNSUBSCRIBED = 'UNSUBSCRIBED',
+  SEND_MESSAGE = 'SEND_MESSAGE',
 }
 
 registerEnumType(NotificationType, {
