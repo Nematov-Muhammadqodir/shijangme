@@ -45,6 +45,13 @@ export class MemberResolver {
   }
 
   @UseGuards(AuthGuard)
+  @Mutation(() => Boolean)
+  public async logout(@AuthMember('_id') memberId: ObjectId): Promise<boolean> {
+    console.log('Mutation logout');
+    return await this.memberService.logout(memberId);
+  }
+
+  @UseGuards(AuthGuard)
   @Query(() => String)
   public async checkAuth(@AuthMember('memberNick') memberNick: string) {
     console.log('Query checkAuth');

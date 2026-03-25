@@ -7,10 +7,14 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import { Message } from 'apps/shijangme/src/libs/enums/common.enum';
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private redisService: RedisService,
+  ) {}
 
   async canActivate(context: ExecutionContext | any): Promise<boolean> {
     console.info('--- @guard() Authentication [AuthGuard] ---');
@@ -26,6 +30,13 @@ export class AuthGuard implements CanActivate {
       if (!authMember)
         throw new UnauthorizedException(Message.NOT_AUTHENTICATED);
 
+      // Check if session exists in Redis
+      const hasSession = await this.redisService.getSession(
+        String(authMember._id),
+      );
+      if (!hasSession)
+        throw new UnauthorizedException(Message.NOT_AUTHENTICATED);
+
       console.log('memberNick[auth] =>', authMember.memberNick);
       request.body.authMember = authMember;
 
@@ -33,6 +44,5 @@ export class AuthGuard implements CanActivate {
     }
 
     return false;
-    // description => http, rpc, gprs and etc are ignored
   }
 }

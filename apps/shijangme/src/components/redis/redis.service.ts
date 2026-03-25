@@ -109,6 +109,24 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // ====== SESSION OPERATIONS ======
+
+  // Create a session for a user (24 hour TTL)
+  async createSession(memberId: string): Promise<void> {
+    await this.setJson(`session:${memberId}`, { active: true }, 86400);
+  }
+
+  // Check if a session exists
+  async getSession(memberId: string): Promise<boolean> {
+    const session = await this.get(`session:${memberId}`);
+    return !!session;
+  }
+
+  // Destroy a session (logout or ban)
+  async destroySession(memberId: string): Promise<void> {
+    await this.del(`session:${memberId}`);
+  }
+
   // ====== COUNTER OPERATIONS ======
 
   async incr(key: string): Promise<number> {

@@ -25,6 +25,7 @@ import { LikeGroup } from '../../libs/enums/like.enum';
 import { LikeService } from '../like/like.service';
 import { Follower, Following, MeFollowed } from '../../libs/dto/follow/follow';
 import { lookupAuthMemberLiked } from '../../libs/config';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class MemberService {
@@ -35,6 +36,7 @@ export class MemberService {
     private authService: AuthService,
     private viewService: ViewService,
     private likeService: LikeService,
+    private redisService: RedisService,
   ) {}
 
   public async signup(input: MemberInput): Promise<Member> {
@@ -74,7 +76,15 @@ export class MemberService {
 
     response.accessToken = await this.authService.createToken(response);
 
+    // Create session in Redis
+    await this.redisService.createSession(String(response._id));
+
     return response;
+  }
+
+  public async logout(memberId: ObjectId): Promise<boolean> {
+    await this.redisService.destroySession(String(memberId));
+    return true;
   }
 
   public async updateMember(
