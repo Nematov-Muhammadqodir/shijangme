@@ -76,8 +76,14 @@ export class ProductService {
       console.log(`Cache HIT: ${cacheKey}`);
 
       // Merge latest stats from hash (they may be newer than the cached string)
-      const latestViews = await this.redisService.hget(`${cacheKey}:stats`, 'productViews');
-      const latestLikes = await this.redisService.hget(`${cacheKey}:stats`, 'productLikes');
+      const latestViews = await this.redisService.hget(
+        `${cacheKey}:stats`,
+        'productViews',
+      );
+      const latestLikes = await this.redisService.hget(
+        `${cacheKey}:stats`,
+        'productLikes',
+      );
       if (latestViews) targetProduct.productViews = Number(latestViews);
       if (latestLikes) targetProduct.productLikes = Number(latestLikes);
     } else {
@@ -96,10 +102,14 @@ export class ProductService {
       await this.redisService.setJson(cacheKey, targetProduct, 3600);
 
       // Seed the stats hash with current values from DB (same TTL as product cache)
-      await this.redisService.hset(`${cacheKey}:stats`, {
-        productViews: targetProduct.productViews,
-        productLikes: targetProduct.productLikes,
-      }, 3600);
+      await this.redisService.hset(
+        `${cacheKey}:stats`,
+        {
+          productViews: targetProduct.productViews,
+          productLikes: targetProduct.productLikes,
+        },
+        3600,
+      );
     }
 
     // 2. Per-user enrichment (never cached — unique per user)
@@ -166,6 +176,15 @@ export class ProductService {
     if (productStatus === ProductStatus.SOLD) {
       await this.redisService.publish('product-events', {
         event: 'PRODUCT_SOLD',
+        productId: result._id,
+        productName: result.productName,
+        sellerId: productOwnerId,
+      });
+    }
+
+    if (productStatus === ProductStatus.DELETE) {
+      await this.redisService.publish('product-events', {
+        event: 'PRODUCT_DELETED',
         productId: result._id,
         productName: result.productName,
         sellerId: productOwnerId,
@@ -292,7 +311,11 @@ export class ProductService {
     );
 
     // Update the stat directly in cache (no need to delete and re-fetch)
-    await this.redisService.hincrby(`product:${_id}:stats`, targetKey, modifier);
+    await this.redisService.hincrby(
+      `product:${_id}:stats`,
+      targetKey,
+      modifier,
+    );
 
     return result;
   }

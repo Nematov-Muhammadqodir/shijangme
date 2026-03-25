@@ -17,6 +17,7 @@ import {
   lookupFollowerData,
   lookupFollowingData,
 } from '../../libs/config';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class FollowService {
@@ -24,6 +25,7 @@ export class FollowService {
     @InjectModel('Follow')
     private readonly followModel: Model<Follower | Following>,
     private readonly memberService: MemberService,
+    private redisService: RedisService,
   ) {}
 
   public async subscribe(
@@ -34,11 +36,20 @@ export class FollowService {
       throw new InternalServerErrorException(Message.SELF_SUBSCRIPTION_DENIED);
     }
 
+    const follower = await this.memberService.getMember(null, followerId);
     const targetMember = await this.memberService.getMember(null, followingId);
     if (!targetMember)
       throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
     const result = await this.registerSubscription(followerId, followingId);
+
+    if (result) {
+      await this.redisService.publish('follow-events', {
+        event: 'SUBSCRIBED',
+        followingId: result.followingId,
+        followerName: follower.memberNick,
+      });
+    }
 
     await this.memberService.memberStatsEditor({
       _id: followerId,
