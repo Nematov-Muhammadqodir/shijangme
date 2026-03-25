@@ -6,6 +6,7 @@ import { ChatRoomSchema } from '../../schemas/ChatRoom..model';
 import { MessageSchema } from '../../schemas/Message.model';
 import { ChatGateway } from './chat.gateway';
 import { AuthModule } from '../auth/auth.module';
+import { MemberModule } from '../member/member.module';
 
 @Module({
   imports: [
@@ -14,8 +15,9 @@ import { AuthModule } from '../auth/auth.module';
       { name: 'Message', schema: MessageSchema },
     ]),
     AuthModule,
+    MemberModule,
   ],
   providers: [ChatResolver, ChatService, ChatGateway],
-  exports: [ChatGateway],
+  exports: [ChatGateway, ChatService],
 })
 export class ChatModule {}

@@ -109,11 +109,9 @@ export class NotificationService implements OnModuleInit {
         });
 
         // 2. Send real-time notification to seller's browser via Socket.io
-        this.chatGateway.sendNotification(
-          data.receiverId,
-          'notification',
+        this.chatGateway.sendNotification(data.receiverId, 'notification', {
           notification,
-        );
+        });
 
         this.logger.log(
           `Notification sent to chat room ${data.receiverId}: ${data.senderName} sent new message`,

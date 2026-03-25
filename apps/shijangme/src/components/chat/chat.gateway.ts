@@ -98,6 +98,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         receiverId: participants.participants.filter(
           (participant) => String(participant) !== payload.senderId,
         )[0],
+        senderId: payload.senderId,
         senderName: follower.memberNick,
       });
     }
