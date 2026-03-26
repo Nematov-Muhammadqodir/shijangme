@@ -34,8 +34,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     // Separate client for subscribing (a subscribed client can't do normal commands)
     this.subscriber = new Redis(redisConfig);
-    this.subscriber.on('connect', () => this.logger.log('Redis subscriber connected'));
-    this.subscriber.on('error', (err) => this.logger.error('Redis subscriber error', err));
+    this.subscriber.on('connect', () =>
+      this.logger.log('Redis subscriber connected'),
+    );
+    this.subscriber.on('error', (err) =>
+      this.logger.error('Redis subscriber error', err),
+    );
   }
 
   // Called automatically when NestJS shuts down
@@ -149,6 +153,53 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // ====== SORTED SET OPERATIONS ======
+
+  // Increment a member's score in a sorted set
+  async zincrby(
+    key: string,
+    member: string,
+    increment: number,
+  ): Promise<number> {
+    try {
+      const score = await this.client.zincrby(key, increment, member);
+      return Number(score);
+    } catch (err) {
+      this.logger.warn(`Redis zincrby failed for "${key}:${member}"`, err);
+      return null;
+    }
+  }
+
+  // Get top N members (highest score first)
+  async zrevrange(key: string, start: number, stop: number): Promise<string[]> {
+    try {
+      return await this.client.zrevrange(key, start, stop);
+    } catch (err) {
+      this.logger.warn(`Redis zrevrange failed for "${key}"`, err);
+      return [];
+    }
+  }
+
+  // Get top N members WITH their scores
+  async zrevrangeWithScores(
+    key: string,
+    start: number,
+    stop: number,
+  ): Promise<{ member: string; score: number }[]> {
+    try {
+      const raw = await this.client.zrevrange(key, start, stop, 'WITHSCORES');
+      // Redis returns: ["member1", "score1", "member2", "score2", ...]
+      const result = [];
+      for (let i = 0; i < raw.length; i += 2) {
+        result.push({ member: raw[i], score: Number(raw[i + 1]) });
+      }
+      return result;
+    } catch (err) {
+      this.logger.warn(`Redis zrevrangeWithScores failed for "${key}"`, err);
+      return [];
+    }
+  }
+
   // ====== HASH OPERATIONS ======
 
   // Set multiple fields in a hash (optionally with TTL)
@@ -223,7 +274,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   // Subscribe to a channel and handle incoming messages
-  async subscribe(channel: string, callback: (data: any) => void): Promise<void> {
+  async subscribe(
+    channel: string,
+    callback: (data: any) => void,
+  ): Promise<void> {
     try {
       await this.subscriber.subscribe(channel);
       this.subscriber.on('message', (ch, message) => {

@@ -61,6 +61,14 @@ export class ProductResolver {
     return await this.productService.updateProduct(productOwnerId, input);
   }
 
+  @Query(() => [Product])
+  public async getTrendingProducts(
+    @Args('limit', { type: () => Number, defaultValue: 10 }) limit: number,
+  ): Promise<Product[]> {
+    console.log('Query getTrendingProducts');
+    return await this.productService.getTrendingProducts(limit);
+  }
+
   @UseGuards(WithoutGuard)
   @Query(() => Products)
   public async getProducts(

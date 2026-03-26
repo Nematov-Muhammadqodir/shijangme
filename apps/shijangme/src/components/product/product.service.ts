@@ -317,7 +317,49 @@ export class ProductService {
       modifier,
     );
 
+    // Update trending leaderboard when likes increase
+    if (targetKey === 'productLikes' && modifier > 0) {
+      await this.redisService.zincrby(
+        'trending:products',
+        String(_id),
+        modifier,
+      );
+    }
+
+    // Update trending leaderboard when views increase
+    if (targetKey === 'productViews' && modifier > 0) {
+      await this.redisService.zincrby(
+        'trending:products',
+        String(_id),
+        modifier,
+      );
+    }
+
     return result;
+  }
+
+  public async getTrendingProducts(limit: number = 10): Promise<Product[]> {
+    // Get top product IDs from sorted set
+    const trending = await this.redisService.zrevrangeWithScores(
+      'trending:products',
+      0,
+      limit - 1,
+    );
+
+    if (!trending.length) return [];
+
+    // Fetch full product data from MongoDB
+    const productIds = trending.map((item) => item.member);
+    const products = await this.productModel
+      .find({ _id: { $in: productIds }, productStatus: ProductStatus.ACTIVE })
+      .lean()
+      .exec();
+
+    // Sort products in the same order as the trending list
+    const productMap = new Map(products.map((p) => [String(p._id), p]));
+    return trending
+      .map((item) => productMap.get(item.member))
+      .filter(Boolean) as Product[];
   }
 
   public async getVendorProducts(
