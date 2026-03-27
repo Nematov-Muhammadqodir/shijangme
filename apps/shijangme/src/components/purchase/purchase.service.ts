@@ -5,7 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
-import { Purchase, Purchases, PurchaseSummary } from '../../libs/dto/purchase/purchase';
+import {
+  Purchase,
+  Purchases,
+  PurchaseSummary,
+} from '../../libs/dto/purchase/purchase';
 import {
   PurchaseInput,
   PurchasesInquiry,
@@ -24,9 +28,11 @@ import { T } from '../../libs/types/common';
 export class PurchaseService {
   constructor(
     @InjectModel('Purchase') private readonly purchaseModel: Model<Purchase>,
-    @InjectModel('FridgeItem') private readonly fridgeItemModel: Model<FridgeItem>,
+    @InjectModel('FridgeItem')
+    private readonly fridgeItemModel: Model<FridgeItem>,
     @InjectModel('Product') private readonly productModel: Model<Product>,
-    @InjectModel('PresetProduct') private readonly presetModel: Model<PresetProduct>,
+    @InjectModel('PresetProduct')
+    private readonly presetModel: Model<PresetProduct>,
     private readonly memberService: MemberService,
   ) {}
 
@@ -70,7 +76,8 @@ export class PurchaseService {
       );
 
       // 4. Create/update Product for marketplace if sell price is provided
-      if (input.productPrice && input.productCollection) {
+      console.log('INPUTT', input);
+      if (input.unitCost && input.productCollection) {
         const existingProduct = await this.productModel.findOne({
           productOwnerId: input.memberId,
           productName: { $regex: new RegExp(`^${input.productName}$`, 'i') },
@@ -89,9 +96,7 @@ export class PurchaseService {
               ...(input.productImages?.length
                 ? { productImages: input.productImages }
                 : {}),
-              ...(input.productDesc
-                ? { productDesc: input.productDesc }
-                : {}),
+              ...(input.productDesc ? { productDesc: input.productDesc } : {}),
               ...(input.productOrigin
                 ? { productOrigin: input.productOrigin }
                 : {}),
@@ -131,15 +136,23 @@ export class PurchaseService {
           $set: {
             productName: input.productName,
             memberId: input.memberId,
-            ...(input.productCollection ? { productCollection: input.productCollection } : {}),
+            ...(input.productCollection
+              ? { productCollection: input.productCollection }
+              : {}),
             ...(input.unit ? { unit: input.unit } : {}),
             ...(input.unitCost ? { defaultUnitCost: input.unitCost } : {}),
             ...(input.quantity ? { defaultQuantity: input.quantity } : {}),
-            ...(input.productImages?.length ? { productImages: input.productImages } : {}),
+            ...(input.productImages?.length
+              ? { productImages: input.productImages }
+              : {}),
             ...(input.productPrice ? { productPrice: input.productPrice } : {}),
-            ...(input.productOriginPrice ? { productOriginPrice: input.productOriginPrice } : {}),
+            ...(input.productOriginPrice
+              ? { productOriginPrice: input.productOriginPrice }
+              : {}),
             ...(input.productDesc ? { productDesc: input.productDesc } : {}),
-            ...(input.productOrigin ? { productOrigin: input.productOrigin } : {}),
+            ...(input.productOrigin
+              ? { productOrigin: input.productOrigin }
+              : {}),
           },
         },
         { upsert: true },

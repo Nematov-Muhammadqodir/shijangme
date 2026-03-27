@@ -16,6 +16,7 @@ import { StripeResolver } from './stripe/stripe.resolver';
 
 import { ChatModule } from './chat/chat.module';
 import { AiAgentModule } from './ai-agent/ai-agent.module';
+import { VendorAiAgentModule } from './vendor-ai-agent/vendor-ai-agent.module';
 import { FridgeModule } from './fridge/fridge.module';
 import { BillModule } from './bill/bill.module';
 import { PurchaseModule } from './purchase/purchase.module';
@@ -39,6 +40,7 @@ import { QueueModule } from './queue/queue.module';
     NoticeModule,
     ChatModule,
     AiAgentModule,
+    VendorAiAgentModule,
     FridgeModule,
     BillModule,
     PurchaseModule,
