@@ -35,6 +35,13 @@ export class NotificationService implements OnModuleInit {
           notification,
         );
 
+        // 3. Queue email job (processed in background by QueueService)
+        await this.redisService.enqueue('email-queue', {
+          type: 'PRODUCT_SOLD_EMAIL',
+          sellerId: data.sellerId,
+          productName: data.productName,
+        });
+
         this.logger.log(
           `Notification sent to seller ${data.sellerId}: ${data.productName} sold`,
         );

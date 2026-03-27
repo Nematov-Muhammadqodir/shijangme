@@ -22,6 +22,7 @@ import { PurchaseModule } from './purchase/purchase.module';
 import { PresetProductModule } from './preset-product/preset-product.module';
 import { LoanModule } from './loan/loan.module';
 import { RedisModule } from './redis/redis.module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { RedisModule } from './redis/redis.module';
     PresetProductModule,
     LoanModule,
     RedisModule,
+    QueueModule,
   ],
   providers: [StripeService, StripeResolver],
 })

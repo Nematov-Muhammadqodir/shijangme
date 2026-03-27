@@ -200,6 +200,39 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // ====== QUEUE OPERATIONS ======
+
+  // Add a job to the queue
+  async enqueue(queue: string, job: any): Promise<void> {
+    try {
+      await this.client.lpush(queue, JSON.stringify(job));
+    } catch (err) {
+      this.logger.warn(`Redis enqueue failed for "${queue}"`, err);
+    }
+  }
+
+  // Take a job from the queue (FIFO)
+  async dequeue(queue: string): Promise<any | null> {
+    try {
+      const raw = await this.client.rpop(queue);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (err) {
+      this.logger.warn(`Redis dequeue failed for "${queue}"`, err);
+      return null;
+    }
+  }
+
+  // Check how many jobs are in the queue
+  async queueLength(queue: string): Promise<number> {
+    try {
+      return await this.client.llen(queue);
+    } catch (err) {
+      this.logger.warn(`Redis queueLength failed for "${queue}"`, err);
+      return 0;
+    }
+  }
+
   // ====== HASH OPERATIONS ======
 
   // Set multiple fields in a hash (optionally with TTL)
